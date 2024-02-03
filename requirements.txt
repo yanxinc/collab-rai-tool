@@ -1,0 +1,5 @@
+pandas
+openai==0.28
+streamlit
+torch
+sentence-transformers
