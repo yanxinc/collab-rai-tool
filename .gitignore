@@ -2,5 +2,6 @@ __pycache__
 .DS_Store
 .ipynb_checkpoints
 .venv
+venv
 *.log
 cred.py
