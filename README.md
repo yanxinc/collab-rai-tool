@@ -9,8 +9,11 @@
     $ pip install -r requirements.txt
   ```
 - Deploy using Docker
-  ```
+  <!-- ```
     $ docker build -t streamlit .
     $ docker run -p 8501:8501 streamlit
+  ``` -->
+  ```bash
+    $ docker-compose up -d --build
   ```
 
