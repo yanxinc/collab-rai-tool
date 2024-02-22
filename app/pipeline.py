@@ -123,6 +123,13 @@ def get_scenarios(demographic_groups, goal, sys_info):
         )
         logging.info(f"======== Scenarios First Draft for harm: {harm} ========")
         logging.info(rsp['choices'][0]['message']['content'])
+        p.append({'role': 'assistant', 'content': f"{rsp['choices'][0]['message']['content']}"})
+        p.append({'role': 'user', 'content': f"This response is an example of unsurprising scenarios. Do not respond with unsurprising scenarios. Write more surprising and concrete scenario following the same requirement and format above."})
+        rsp = openai.ChatCompletion.create( 
+            model=gpt4, 
+            messages=p
+        )
+
         return rsp['choices'][0]['message']['content']
 
     with ThreadPoolExecutor(max_workers=6) as executor:
@@ -154,7 +161,7 @@ def sampling_0(scenarios):
     logging.info("======== Sampling Scenarios ... ========")
     sentence_embeddings = model.encode(scenarios)
 
-    num_clusters = 5
+    num_clusters = 10
     clustering_model = KMeans(n_clusters=num_clusters)
     clustering_model.fit(sentence_embeddings)
     cluster_assignment = clustering_model.labels_
@@ -163,10 +170,15 @@ def sampling_0(scenarios):
     for sentence_id, cluster_id in enumerate(cluster_assignment):
         clustered_sentences[cluster_id].append(scenarios[sentence_id])
 
+    # filter out empty clusters & keep the 5 clusters with the least number of scenarios
+    clustered_sentences = [lst for lst in clustered_sentences if any(lst) and len(lst) > 0]
+    len_sorted = sorted(clustered_sentences, key=len)
+    clustered_sentences = len_sorted[:5]
+
     i = 0
-    for cluser in enumerate(clustered_sentences):
+    for cluster in enumerate(clustered_sentences):
         logging.info(f"=== Cluster {i} ===")
-        logging.info(cluser)
+        logging.info(cluster)
         i += 1
 
     return list(map(lambda L: random.choice(L), clustered_sentences))
@@ -339,7 +351,7 @@ def generate_scenarios(st, sys_info, goal, given_stakeholders=None):
 contexts = [
     {
         'sys_info': "Situation: I am building a Movie Recommendation System application. A system that provides movie recommendations to users based on their watching history and ratings data. The system can receive recommendation requests and needs to reply with a list of recommended movies. The purpose of this system is to suggest movies to users to allow for better user experience. The users (movie watchers) would be able to receive more personalized recommendations. The AI / ML model uses collaborative filtering algorithms to accumulate and learn from users' past evaluations of movies to approximate ratings of unrated movies and then give recommendations based on these estimates. An intended use is to request movie recommendations. The description of this intended use is users (movie watchers) can request personalized recommendations.",
-        'given_stakeholders': 'Movie Watchers'
+        'given_stakeholders': 'Movie Watchers, Content Providers'
     },
     {
         'sys_info':"I am building an internal AI recruiting tool. A system that reviews job applicants' resumes and uses artificial intelligence to give job candidates scores ranging from one to five stars. Models were trained to vet applicants by observing patterns in resumes submitted to the company over a 10-year period. The purpose of this system is to automate the recruitment process and find talented applicants. It saves time from having HRs go through all the applications and streamlines the process. The AI/ML model can greatly reduce hiring efforts.  An intended use is to rate job candidates. The description of this intended use is HRs can use this system to score candidates from the job applications / resumes they submit.",
@@ -357,7 +369,7 @@ contexts = [
 #     start = time.time()
 
 #     # generate_scenarios(None, context['sys_info'], 'f2', None)
-#     generate_scenarios(None, context['sys_info'], 'f1', context['given_stakeholders'])
+#     generate_scenarios(None, context['sys_info'], 'f3', context['given_stakeholders'])
 
 #     print(f"Duration: {duration(time.time() - start)}")
 
