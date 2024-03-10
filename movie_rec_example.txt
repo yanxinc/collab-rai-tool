@@ -12,3 +12,8 @@ request for movie recommendations
 
 # intended use 1 description:
 users (movie watchers) can request for personalized recommendations 
+
+# intended use 2:
+view a list of movies that users might be interested in
+
+# intended use 2 description:

@@ -2,14 +2,14 @@ import pandas as pd
 import rai_guide as rai_guide
 import pipeline as pipeline
 
-def section2(st, intended_uses_df):
-    st.header("Section 2: Intended Uses")
+def section2(st, i):
+    st.header(f"Section 2.{i}: Intended Uses")
 
-    intended_use1 = intended_uses_df.iloc[0]["Name of intended use(s)"].strip()
-    intended_use1_description = intended_uses_df.iloc[0]["Description of intended use(s)"]
-    sys_info = f"I am building a {st.session_state.get('system_name', '__')} application. {st.session_state.get('system_description', '__')} {st.session_state.get('system_purpose', '__')} An intended use is {intended_use1}. The description of this indented use is {intended_use1_description}"
+    intended_use = st.session_state.get(f'iu{i}', "").strip()
+    intended_use_description = st.session_state.get(f'iu{i}_des', "").strip()
+    sys_info = f"I am building a {st.session_state.get('system_name', '__')} application. {st.session_state.get('system_description', '__')} {st.session_state.get('system_purpose', '__')} An intended use is {intended_use}. The description of this indented use is {intended_use_description}"
 
-    st.write(f"Intended use #1 : **{intended_use1 if intended_use1 != '' else '[Name of intended use]'}**")
+    st.write(f"Intended use #1 : **{intended_use if intended_use != '' else '[Name of intended use]'}**")
 
     st.subheader("Stakeholders, potential benefits, and potential harms")
     st.write("**2.2** _Identify the system's stakeholders for this intended use. Then, for each stakeholder, document the potential benefits and potential harms. For more information, including prompts, see the Impact Assessment Guide._")
@@ -29,21 +29,21 @@ def section2(st, intended_uses_df):
             ]
         ),  num_rows="dynamic", hide_index=False)
     
-    st.session_state['stakeholders'] = stakeholder_df
+    st.session_state[f'stakeholders_{i}'] = stakeholder_df
 
 
     with st.expander("Stakeholders Identification Guide"):
         st.write(rai_guide.stakeholder_def)
 
-        if "stakeholders_result" in st.session_state and st.session_state["stakeholders_result"]:
-            st.write(st.session_state["stakeholders_result"])
+        if f"stakeholders_result_{i}" in st.session_state and st.session_state[f"stakeholders_result_{i}"]:
+            st.write(st.session_state[f"stakeholders_result_{i}"])
 
         stakeholder_button = st.button("Brainstorm stakeholders")
 
         if stakeholder_button:
-            if intended_use1 != '':
-                st.session_state["stakeholders_result"] = pipeline.stakeholders(sys_info)
-                st.write(st.session_state["stakeholders_result"])
+            if intended_use != '':
+                st.session_state[f"stakeholders_result_{i}"] = pipeline.stakeholders(sys_info)
+                st.write(st.session_state[f"stakeholders_result_{i}"])
             else:               
                 st.write("Please fill in an inteded use first")
 
@@ -58,9 +58,9 @@ def section2(st, intended_uses_df):
 
     st.write("#### Goal F1: Quality of service")
     st.write("_This Goal applies to AI systems when system users or people impacted by the system with different demographic characteristics might experience differences in quality of service that can be remedied by building the system differently. If this Goal applies to the system, complete the table below describing the appropriate stakeholders for this intended use._")
-    st.session_state['goal_f1_1'] =  st.text_input("Which stakeholder(s) will be affected?", value=st.session_state.get("goal_f1_1", ""))
-    st.session_state['goal_f1_2'] =  st.text_area("For affected stakeholder(s) which demographic groups are you prioritizing for this Goal?", value=st.session_state.get("goal_f1_2", ""))
-    st.session_state['goal_f1_3'] =  st.text_area("Explain how each demographic group might be affected.", value=st.session_state.get("goal_f1_3", ""))
+    st.session_state[f'goal_f1_1_{i}'] =  st.text_input("Which stakeholder(s) will be affected?", value=st.session_state.get(f"goal_f1_1_{i}", ""))
+    st.session_state[f'goal_f1_2_{i}'] =  st.text_area("For affected stakeholder(s) which demographic groups are you prioritizing for this Goal?", value=st.session_state.get(f"goal_f1_2_{i}", ""))
+    st.session_state[f'goal_f1_3_{i}'] =  st.text_area("Explain how each demographic group might be affected.", value=st.session_state.get(f"goal_f1_3_{i}", ""))
 
     with st.expander("Goal F1 Guide"):
         with st.form("f1_guide"):
@@ -69,8 +69,8 @@ def section2(st, intended_uses_df):
             f1_stakeholders_on = st.toggle('Generate stakeholder for me')
             f1_brainstorm = st.form_submit_button("Brainstorm Scenarios concerning Quality of Service")
 
-            if "f1_scenarios" in st.session_state:
-                st.write(st.session_state["f1_scenarios"])
+            if f"f1_scenarios_{i}" in st.session_state:
+                st.write(st.session_state[f"f1_scenarios_{i}"])
 
             if f1_brainstorm:
                 if f1_stakeholders_on:
@@ -78,13 +78,13 @@ def section2(st, intended_uses_df):
                 else:
                     res = pipeline.generate_scenarios(st, sys_info, 'f1', str(stakeholder_df['Stakeholders'].tolist()))
                 st.write(res)
-                st.session_state["f1_scenarios"] = res
+                st.session_state[f"f1_scenarios_{i}"] = res
 
     st.write("#### Goal F2: Allocation of resources and opportunities")
     st.write("_This Goal applies to AI systems that generate outputs that directly affect the allocation of resources or opportunities relating to finance, education, employment, healthcare, housing, insurance, or social welfare. If this Goal applies to the system, complete the table below describing the appropriate stakeholders for this intended use._")
-    st.session_state['goal_f2_1'] =  st.text_input("Which stakeholder(s) will be affected? ", value=st.session_state.get("goal_f2_1", ""))
-    st.session_state['goal_f2_2'] =  st.text_area("For affected stakeholder(s) which demographic groups are you prioritizing for this Goal? ", value=st.session_state.get("goal_f2_2", ""))
-    st.session_state['goal_f2_3'] =  st.text_area("Explain how each demographic group might be affected. ", value=st.session_state.get("goal_f2_3", ""))
+    st.session_state[f'goal_f2_1_{i}'] =  st.text_input("Which stakeholder(s) will be affected? ", value=st.session_state.get(f"goal_f2_1_{i}", ""))
+    st.session_state[f'goal_f2_2_{i}'] =  st.text_area("For affected stakeholder(s) which demographic groups are you prioritizing for this Goal? ", value=st.session_state.get(f"goal_f2_2_{i}", ""))
+    st.session_state[f'goal_f2_3_{i}'] =  st.text_area("Explain how each demographic group might be affected. ", value=st.session_state.get(f"goal_f2_3_{i}", ""))
     
     with st.expander("Goal F2 Guide"):
         with st.form("f2_guide"):
@@ -93,8 +93,8 @@ def section2(st, intended_uses_df):
             f2_stakeholders_on = st.toggle('Generate stakeholder for me')
             f2_brainstorm = st.form_submit_button("Brainstorm Scenarios concerning Allocation of resources and opportunities Considerations")
 
-            if "f2_scenarios" in st.session_state:
-                st.write(st.session_state["f2_scenarios"])
+            if f"f2_scenarios_{i}" in st.session_state:
+                st.write(st.session_state[f"f2_scenarios_{i}"])
 
             if f2_brainstorm:
                 if f2_stakeholders_on:
@@ -102,14 +102,14 @@ def section2(st, intended_uses_df):
                 else:
                     res = pipeline.generate_scenarios(st, sys_info, 'f2', str(stakeholder_df['Stakeholders'].tolist()))
                 st.write(res)
-                st.session_state["f2_scenarios"] = res
+                st.session_state[f"f2_scenarios_{i}"] = res
                 print("f2_scenarios updated")
 
     st.write("#### Goal F3: Minimization of stereotyping, demeaning, and erasing outputs")
     st.write("_This Goal applies to AI systems when system outputs include descriptions, depictions, or other representations of people, cultures, or society. If this Goal applies to the system, complete the table below describing the appropriate stakeholders for this intended use._")
-    st.session_state['goal_f3_1'] =  st.text_input("Which stakeholder(s) will be affected?  ", value=st.session_state.get("goal_f3_1", ""))
-    st.session_state['goal_f3_2'] =  st.text_area("For affected stakeholder(s) which demographic groups are you prioritizing for this Goal?  ", value=st.session_state.get("goal_f3_2", ""))
-    st.session_state['goal_f3_3'] =  st.text_area("Explain how each demographic group might be affected.  ", value=st.session_state.get("goal_f3_3", ""))
+    st.session_state[f'goal_f3_1_{i}'] =  st.text_input("Which stakeholder(s) will be affected?  ", value=st.session_state.get(f"goal_f3_1_{i}", ""))
+    st.session_state[f'goal_f3_2_{i}'] =  st.text_area("For affected stakeholder(s) which demographic groups are you prioritizing for this Goal?  ", value=st.session_state.get(f"goal_f3_2_{i}", ""))
+    st.session_state[f'goal_f3_3_{i}'] =  st.text_area("Explain how each demographic group might be affected.  ", value=st.session_state.get(f"goal_f3_3_{i}", ""))
 
     with st.expander("Goal F3 Guide"):
         with st.form("f3_guide"):
@@ -118,8 +118,8 @@ def section2(st, intended_uses_df):
             f3_stakeholders_on = st.toggle('Generate stakeholder for me')
             f3_brainstorm = st.form_submit_button("Brainstorm Scenarios concerning stereotyping, demeaning, and erasing outputs")
 
-            if "f3_scenarios" in st.session_state:
-                st.write(st.session_state["f3_scenarios"])
+            if f"f3_scenarios_{i}" in st.session_state:
+                st.write(st.session_state[f"f3_scenarios_{i}"])
 
             if f3_brainstorm:
                 if f3_stakeholders_on:
@@ -127,5 +127,5 @@ def section2(st, intended_uses_df):
                 else:
                     res = pipeline.generate_scenarios(st, sys_info, 'f3', str(stakeholder_df['Stakeholders'].tolist()))
                 st.write(res)
-                st.session_state["f3_scenarios"] = res
+                st.session_state[f"f3_scenarios_{i}"] = res
 
