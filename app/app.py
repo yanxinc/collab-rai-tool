@@ -1,6 +1,7 @@
 import streamlit as st
 from section1 import section1
 from section2 import section2
+from section3 import section3
 import re
 
 def main():
@@ -9,6 +10,7 @@ def main():
     st.write("For questions about specific sections within the Impact Assessment, please refer to the Impact Assessment Guide.")
 
     if 'num_iu' not in st.session_state: st.session_state['num_iu'] = 1
+    if 'num_hm' not in st.session_state: st.session_state['num_hm'] = 1
 
     if 'sections' not in st.session_state: st.session_state['sections'] = {
         "Section 1: System Information": section1,
@@ -16,6 +18,8 @@ def main():
         
     for i in range(1,st.session_state['num_iu']+1):
         st.session_state['sections'][f"Section 2.{i}: Intended use {i}"] = section2
+
+    st.session_state['sections']["Section 3: Potential harms and mitigations"] = section3
 
     # Create a sidebar for page selection
     selected_section = st.sidebar.radio("Sections", list(st.session_state['sections'].keys()))

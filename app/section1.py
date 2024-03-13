@@ -18,7 +18,7 @@ def section1(st):
         st.session_state[f'iu{i+1}'] = st.text_input(f"Intended Use {i+1} Name", value=st.session_state.get(f"iu{i+1}", ""))
         st.session_state[f'iu{i+1}_des'] = st.text_input(f"Intended Use {i+1} Description", value=st.session_state.get(f"iu{i+1}_des", ""))
 
-    add_iu_button = st.button("Added Intended Use")
+    add_iu_button = st.button("Add Intended Use")
     if add_iu_button:
         st.session_state['num_iu'] += 1
     

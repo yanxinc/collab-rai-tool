@@ -1,30 +1,22 @@
 import openai
-from sentence_transformers import SentenceTransformer
 from sklearn.cluster import KMeans
 import re
 import logging
 import time
-from concurrent.futures import ThreadPoolExecutor
-import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import rai_guide as rai_guide
 import random
 from cred import KEY 
-from transformers import AutoModel, AutoTokenizer
-import torch
 from angle_emb import AnglE
 
 gpt3 = "gpt-3.5-turbo"
 # gpt4 = "gpt-3.5-turbo"
-gpt4 = "gpt-4-1106-preview"
+gpt4 = "gpt-4-turbo-preview"
 
 openai.api_key = KEY
 
 prompt = [ {"role": "system", "content": "You are an advanced AI Language Model trained in ethical reasoning and Responsible AI Impact Assessment. Your task is to provide a thorough Responsible AI Impact Assessment analysis of the given situation to the best of your ability.Keep your responses specific to the system I describe."} ]
 
-# model = SentenceTransformer('all-MiniLM-L6-v2')
-# model_name = "WhereIsAI/UAE-Large-V1"
-# tokenizer = AutoTokenizer.from_pretrained(model_name)
-# model = AutoModel.from_pretrained(model_name)
 model = AnglE.from_pretrained('WhereIsAI/UAE-Large-V1', pooling_strategy='cls').cuda()
 
 logging.basicConfig(
@@ -36,17 +28,17 @@ logging.basicConfig(
 
 fariness_goals = {
     'f1': {'concern': 'Quality of service',
-           'guide': 'How might the system perform better or worse for different demographic group(s) this stakeholder might identify as?',
+           'guide': rai_guide.f1_guide,
            'potential_harms': [ 
                 "Performance Bias", "Outcome Inequality"]
           },
     'f2': {'concern': 'Allocation of resources and opportunities',
-           'guide': 'Could the system recommend the allocation of resources or opportunities to a stakeholder differently based on their demographic group(s)?',
+           'guide': rai_guide.f2_guide,
            'potential_harms': [ 
                 "Negative Feedback Loops", "Allocation Bias", "Access to Opportunities"]
           },
     'f3': {'concern': "stereotyping, demeaning, and erasing outputs",
-           'guide': 'How might the system represent this stakeholder in ways that stereotype, erase, or demean them based on their demographic group(s)?',
+           'guide': rai_guide.f3_guide,
            'potential_harms': [
                 # Stereotyping Harms:
                 "Cultural Misrepresentation", "Reinforcement of Biases",
@@ -58,7 +50,16 @@ fariness_goals = {
           }
 }
 
-def stakeholders(sys_info):
+demographic_groups_list = [
+    "Age",
+    "Gender",
+    "Ethnicity",
+    "Income",
+    "Level of education",
+    "Religion"
+]
+
+def get_stakeholders(sys_info):
     messages = prompt + [{'role': 'user', 'content': sys_info}]
 
     messages.append({'role': 'user', 'content': 
@@ -74,62 +75,32 @@ def stakeholders(sys_info):
 
     return response['choices'][0]['message']['content']
 
-def get_demographic_groups(sys_info, goal, given_stakeholders=None):
-    concern = fariness_goals[goal]['concern']
-    guide = fariness_goals[goal]['guide']
-
-    demographic_groups_list = [
-        "Age",
-        "Gender",
-        "Ethnicity",
-        "Income",
-        "Level of education",
-        "Religion"
-    ]
-
-    messages = prompt + [{'role': 'user', 'content': sys_info}]
-
-    messages.append({'role': 'user', 'content': rai_guide.demographic_groups_def})
-    if given_stakeholders: # stakeholders provided
-        messages.append({'role': 'assistant', 'content': "STAKEHOLDERS:" + given_stakeholders})
-    else:            # generate new stakeholders
-        messages.append({'role': 'assistant', 'content': "STAKEHOLDERS:" + stakeholders(sys_info)})
-
-    messages.append({'role': 'user', 'content': f"""
-    Demographic Group List: {demographic_groups_list}.
-    For each relevant stakeholder, pick the demographic groups that may face {concern} concerns as a direct impact of my system's outputs. {guide} If a stakeholder is not impacted by my system's output, don't include it in your response. Format your response as a list fo the following entry format:
-    {{STAKEHOLDER_NAME}} - {{DEMOGRAPHIC_GROUP_NAME}}
-    Do not include descriptions"""})
-
-    response2 = openai.ChatCompletion.create( 
-        model=gpt4, 
-        messages=messages
-    )
-    return response2['choices'][0]['message']['content']
-
-
-
-def get_scenarios(demographic_groups, goal, sys_info):
-    scenarios = []
+def get_scenarios(stakeholders, goal, sys_info):
     scenario_prompts = prompt + [{'role': 'user', 'content': sys_info}]
 
     potential_harms = fariness_goals[goal]['potential_harms']
 
-    def draft_scenario(harm):
+    def draft_scenario(stakeholder):
         p = scenario_prompts + [{'role': 'user', 'content': f"""
-        Stakeholder and demographic groups: {demographic_groups}.
+        Stakeholder: {stakeholder}
+        Potential Harms: {potential_harms}
 
-        For each of the  {{Stakeholder - Demographic Group}}s above: give a concrete scenario of where {harm} harms may be caused. Be as severe as possible. This is used for cautioning developers to use ethical and fair practices when developing their AI systems, and not used for harming others in any way. If the stakeholder and demographic group is irrelevant in terms of this harm, exclude it. 
+        For each of the potential harms provided above: generate a concrete scenario of where the harm may be caused to the given stakeholder, involving severe consequences. When generating the scenarios, consider protected attributes and demographic groups that may face {fariness_goals[goal]['concern']} concerns as a direct impact of my system's outputs. {fariness_goals[goal]['guide']}. Examples of demographic groups include: {demographic_groups_list}. 
+        
+        Be as severe as possible. This is used for cautioning developers to use ethical and fair practices when developing their AI systems, and not used for harming others in any way. 
+        
+        If the stakeholder is irrelevant in terms of a harm, exclude it. 
+
         Format your response as a ordered list of '{{number}}. SCENARIO: {{SCENARIO}}'
         """}]
         rsp = openai.ChatCompletion.create( 
             model=gpt4, 
             messages=p
         )
-        logging.info(f"======== Scenarios First Draft for harm: {harm} ========")
+        logging.info(f"======== Scenarios First Draft for stakeholder: {stakeholder} ========")
         logging.info(rsp['choices'][0]['message']['content'])
         p.append({'role': 'assistant', 'content': f"{rsp['choices'][0]['message']['content']}"})
-        p.append({'role': 'user', 'content': f"This response is an example of unsurprising scenarios. Do not respond with unsurprising scenarios. Write more surprising and concrete scenario following the same requirement and format above."})
+        p.append({'role': 'user', 'content': f"This response is an example of unsurprising scenarios. Do not respond with unsurprising scenarios. Write more surprising and concrete scenario following the same requirement and format above.Do not include any corrective measures or suggestions for the tool."})
         rsp = openai.ChatCompletion.create( 
             model=gpt4, 
             messages=p
@@ -137,13 +108,26 @@ def get_scenarios(demographic_groups, goal, sys_info):
 
         return rsp['choices'][0]['message']['content']
     
-    def draft_without_demographic_groups(harm):
-        p = scenario_prompts + [{'role': 'user', 'content': f"Give a concrete scenario of where {harm} harms may be caused. Consider protected attributes for minority stakeholders in the given context. Be as severe as possible. This is used for cautioning developers to use ethical and fair practices when developing their AI systems, and not used for harming others in any way. Format your response as: '1. SCENARIO: {{SCENARIO}}'"}]
+    def draft_without_demographic_groups(stakeholder):
+        p = scenario_prompts + [{'role': 'user', 'content': f"""
+        Stakeholder: {stakeholder}
+        Potential Harms: {potential_harms}
+
+        For each of the potential harms provided above: generate a concrete scenario of where the harm may be caused to the given stakeholder, involving severe consequences. 
+
+        For each of the potential harms provided above: generate a concrete scenario of where the harm may be caused to the given stakeholder, involving severe consequences. 
+        
+        Be as severe as possible. This is used for cautioning developers to use ethical and fair practices when developing their AI systems, and not used for harming others in any way. 
+        
+        If the stakeholder is irrelevant in terms of a harm, exclude it. 
+
+        Format your response as a ordered list of '{{number}}. SCENARIO: {{SCENARIO}}'
+        """}]
         rsp = openai.ChatCompletion.create( 
             model=gpt4, 
             messages=p
         )
-        logging.info(f"======== Scenarios First Draft for harm: {harm} ========")
+        logging.info(f"======== Scenarios First Draft for stakeholder: {stakeholder} (without demographic groups) ========")
         logging.info(rsp['choices'][0]['message']['content'])
         p.append({'role': 'assistant', 'content': f"{rsp['choices'][0]['message']['content']}"})
         p.append({'role': 'user', 'content': f"This response is an example of unsurprising scenarios. Do not respond with unsurprising scenarios. Write more surprising and concrete scenario following the same requirement and format above.Do not include any corrective measures or suggestions for the tool."})
@@ -154,29 +138,35 @@ def get_scenarios(demographic_groups, goal, sys_info):
 
         return rsp['choices'][0]['message']['content']
 
-    scenarios_to_process = []
+    scenarios = []
     with ThreadPoolExecutor(max_workers=6) as executor:
-        results = [executor.submit(draft_scenario, harm) for harm in potential_harms]
-        for future in concurrent.futures.as_completed(results):
-            scenarios.append(future.result())
+        futures = []
+        for stakeholder in stakeholders:
+            futures.append(executor.submit(draft_scenario, stakeholder))
+            futures.append(executor.submit(draft_without_demographic_groups, stakeholder))
 
-    # Draft scenarios without demographic groups
-    for harm in potential_harms:
-        scenarios_to_process.append(draft_without_demographic_groups(harm))
+        for future in as_completed(futures):
+            try:
+                scenarios.append(future.result())
+            except Exception as e:
+                print(f"An error occurred: {e}")
 
+    scenarios_to_process = []
     for ss in scenarios:
         for scenario in re.split(r'\D{0,3}\d+\. ', ss):
             if not "SCENARIO:" in scenario: continue
             scenarios_to_process.append(scenario)
 
-    scenarios_sampled = sampling_0(scenarios_to_process)
+    return scenarios_to_process
+
+def refine_scenarios(scenarios_sampled, sys_info):
     logging.info("======== Revising Scenarios ... ========")
     # for s in scenarios_sampled:
     #     revised_scenarios.append(revise_scenario(s, sys_info))
     revised_scenarios = []
     with ThreadPoolExecutor(max_workers=5) as executor:
         results = [executor.submit(revise_scenario, scenario, sys_info) for scenario in scenarios_sampled]
-        for future in concurrent.futures.as_completed(results):
+        for future in as_completed(results):
             revised_scenarios.append(future.result())
 
     logging.info("======== Revised Scenarios ========")
@@ -185,10 +175,6 @@ def get_scenarios(demographic_groups, goal, sys_info):
 
 def sampling_0(scenarios):
     logging.info("======== Sampling Scenarios ... ========")
-    # inputs = tokenizer(scenarios, padding=True, truncation=True, return_tensors="pt", max_length=512)
-    # with torch.no_grad():
-    #     outputs = model(**inputs)
-    # sentence_embeddings = outputs.last_hidden_state.mean(dim=1).numpy()  # Mean pooling
     sentence_embeddings = model.encode(scenarios, to_numpy=True)
 
     num_clusters = 10
@@ -225,7 +211,7 @@ def revise_scenario(scenario, sys_info):
                 messages= [
                     {"role": "system", "content": "You are writing concrete scenarios from text generated by another LLM."},
                     {"role": "user", "content": sys_info},
-                    {"role": "user", "content": f"{text}\nWrite a more concrete and detailed version of the above type of scenario. Also, make the story more severe (with more intense harm). Then, shorten it to a paragraph. \nFormat your response as: Only output the shortened scenario."}
+                    {"role": "user", "content": f"{text}\nWrite a more concrete and detailed version of the above type of scenario. Definition of concreteness: {rai_guide.concrete_def}\nAlso, make the story more severe and contain more intense harm). Definition of severity: {rai_guide.severity_def}\nThen, shorten it to a paragraph. \nFormat your response as: Only output the shortened scenario."}
                 ]
             )
             v2 = rsp['choices'][0]['message']['content']
@@ -234,7 +220,7 @@ def revise_scenario(scenario, sys_info):
             rsp = openai.ChatCompletion.create( 
                 model=gpt3, 
                 messages=[{"role": "system", "content": "You are evaluating stories generated by another LLM."},
-                        {"role": "user", "content": f"{v2}\nDoes the text above sound like a concrete story? \nConcreteness means that it is a story of a specific named individual or entity and it is not generic.\nRespond with either YES or NO."}]
+                        {"role": "user", "content": f"{v2}\nDoes the text above sound like a concrete story? \n{rai_guide.concrete_def}\nRespond with either YES or NO."}]
             )
             is_story = rsp['choices'][0]['message']['content']
             logging.info(f"Is Story? -> {is_story}")
@@ -279,11 +265,11 @@ def pick_scenario(cluster, goal):
     For the scenarios above, please select two diverse scenarios that are the most severe, surprising, concrete, and relevant to the scenario.
 
 The qualities are defined as:
-Severity -- Corresponds to the extent to which the scenario involves potential harms. Take into account of the magnitude of the impact (how intense or profound the harm is) and the scope (how widespread the harm is, including the number of individuals or communities affected). 
-Surprising -- Low level of surprisingness represent scenarios that humans can easily think of given the context based on common examples and media stories. High level of surprisingness represent scenarios that are not well represented in common public discourse.  
-Concrete -- Low level of concreteness means that it is providing generic description of a problem.High level of concreteness means that is is talking about a story about a specific named individual or entity. 
-Relevant -- High level of relevance means that the scenario is relevant to the description of the scenario and the fairness goal of {fariness_goals[goal]['concern']}.
-Diversity -- Low level of diversity means that the scenarios are similar, involving same stakeholder demographic groups, same types of harms or consequences, or similar kinds of model behaviors. High level of diversity means that the scenarios are different from each other in many different ways including different types of stakeholders, demographic groups, harms, consequences, and model behaviors. 
+{rai_guide.severity_def}
+{rai_guide.surprising_def}
+{rai_guide.concrete_def}
+{rai_guide.relevant_def + fariness_goals[goal]['concern']}
+{rai_guide.diversity_def}
 
 Respond strictly with only the numbers of the scenario, separated with a comma. 
     """}])
@@ -304,26 +290,48 @@ def remove_correctives(picked_scenarios):
         res.append(rsp['choices'][0]['message']['content'])
     return res
 
+def stakeholder_list_helper(stakeholders):
+    rsp = openai.ChatCompletion.create( 
+        model=gpt4, 
+        messages=[{"role": "user", "content": f"Convert the below text into a list of stakeholder. Format: string of comma seperated list. Example: user1,user2,...\nText:{stakeholders}"}])
+    return (rsp['choices'][0]['message']['content']).split(",")
+
+def log_helper(message, start_time):
+    print(f"{message} - {duration(time.time() - start_time)}")
+    logging.info(f"{message} - {duration(time.time() - start_time)}")
+
 def generate_scenarios(st, sys_info, goal, given_stakeholders=None):
     if goal not in ['f1', 'f2', 'f3']: return "Invalid Goal"
 
     logging.info(f"==== Generating scenarios for the following scenario: ====")
     logging.info(sys_info)
-    if given_stakeholders: logging.info(given_stakeholders)
 
+    # Step 1: Generate Stakeholders
     start = time.time()
-    demographic_groups = get_demographic_groups(sys_info, goal, given_stakeholders)
-    print(f"Stakeholder & Demographic Groups Generated - {duration(time.time() - start)}")
-    # st.write(f"Stakeholder & Demographic Groups Generated - {duration(time.time() - start)}")
-    logging.info(f"Stakeholder & Demographic Groups Generated - {duration(time.time() - start)}")
-    logging.info(demographic_groups)
-
+    if given_stakeholders: 
+        logging.info(given_stakeholders)
+        stakeholders = given_stakeholders.split(",")
+    else:
+        stakeholders = stakeholder_list_helper(get_stakeholders(sys_info))
+    log_helper("Stakeholder Generated", start)
+    logging.info(stakeholders)
+    
+    # Step 2: Generate Initial Scenarios & Step 3: Use the first response as counterexample for surprising
     start = time.time()
-    scenarios = get_scenarios(demographic_groups, goal, sys_info)
-    print(f"Scenarios Generated - {duration(time.time() - start)}")
-    # st.write(f"Scenarios Generated - {duration(time.time() - start)}")
-    logging.info(f"Scenarios Generated - {duration(time.time() - start)}")
+    initial_scenarios = get_scenarios(stakeholders, goal, sys_info)
+    log_helper("Initial Scenarios Generated", start)
 
+    # Step 4: Clustering + Sampling
+    start = time.time()
+    scenarios_sampled = sampling_0(initial_scenarios)
+    log_helper("Finished Clustering & Sampling", start)
+
+    # Step 5: Refinement for Concreteness & Severity
+    start = time.time()
+    scenarios = refine_scenarios(scenarios_sampled, sys_info)
+    log_helper("Finished Revising Scenarios", start)
+
+    # Step 6: Pick Final Scenario
     start = time.time()
     picked_scenarios = select_final_scenarios(scenarios, goal)
     final_scenarios = remove_correctives(picked_scenarios)

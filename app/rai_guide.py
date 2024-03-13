@@ -1,11 +1,15 @@
 stakeholder_def = """
-The stakeholder benefits and harms table is one of the most important elements of your Impact Assessment. It is key to understanding the potential impact of the system on people.
-In this section we have prompts to identify stakeholders from two broad categories: direct and indirect stakeholders. The specific category the stakeholder belongs to is not necessarily important. These categories are useful for identifying a broad range of stakeholders who may be impacted by the system.
+Stakeholder identification is one of the most important elements of your Impact Assessment. It is key to understanding the potential impact of the system on people.
+We have prompts to identify stakeholders from two broad categories: direct and indirect stakeholders. The specific category the stakeholder belongs to is not necessarily important. These categories are useful for identifying a broad range of stakeholders who may be impacted by the system.
 
 Direct stakeholders include people who interact with the system directly. They can be system owners, primary users, secondary users, decision subjects or data subjects and malicious actors.
+Indirect stakeholders are affected by the system but, unlike direct stakeholders, do not engage with the system itself. Indirect stakeholders can include bystanders, people responsible for decision subjects or data subjects (such as parents), society at large, or communities who may be affected by the system but don't use it"""
 
-Indirect stakeholders are affected by the system but, unlike direct stakeholders, do not engage with the system itself. Indirect stakeholders can include bystanders, people responsible for decision subjects or data subjects (such as parents), society at large, or communities who may be affected by the system but don't use it.
-"""
+severity_def = "Severity -- Corresponds to the extent to which the scenario involves potential harms. Take into account of the magnitude of the impact (how intense or profound the harm is) and the scope (how widespread the harm is, including the number of individuals or communities affected). "
+surprising_def = "Surprising -- Low level of surprisingness represent scenarios that humans can easily think of given the context based on common examples and media stories. High level of surprisingness represent scenarios that are not well represented in common public discourse. "
+concrete_def = "Concrete -- High level of concreteness means that is is talking about a story of a specific named individual or entity and it is not generic. Low level of concreteness means that it is providing generic description of a problem."
+relevant_def = "Relevant -- High level of relevance means that the scenario is relevant to the description of the scenario and the fairness goal of "
+diversity_def = "Diversity -- Low level of diversity means that the scenarios are similar, involving same stakeholder demographic groups, same types of harms or consequences, or similar kinds of model behaviors. High level of diversity means that the scenarios are different from each other in many different ways including different types of stakeholders, demographic groups, harms, consequences, and model behaviors. "
 
 demographic_groups_def = """
 Definitions: 
