@@ -3,3 +3,4 @@ openai==0.28
 streamlit
 torch
 sentence-transformers
+angle-emb
