@@ -7,17 +7,15 @@ import re
 def main():
     st.title(f"Responsible AI Impact Assessment")
 
-    st.write("For questions about specific sections within the Impact Assessment, please refer to the Impact Assessment Guide.")
-
-    if 'num_iu' not in st.session_state: st.session_state['num_iu'] = 1
+    if 'num_us' not in st.session_state: st.session_state['num_us'] = 1
     if 'num_hm' not in st.session_state: st.session_state['num_hm'] = 1
 
     if 'sections' not in st.session_state: st.session_state['sections'] = {
         "Section 1: System Information": section1,
     }
         
-    for i in range(1,st.session_state['num_iu']+1):
-        st.session_state['sections'][f"Section 2.{i}: Intended use {i}"] = section2
+    for i in range(1,st.session_state['num_us']+1):
+        st.session_state['sections'][f"Section 2.{i}: User Story {i}"] = section2
 
     st.session_state['sections']["Section 3: Potential harms and mitigations"] = section3
 

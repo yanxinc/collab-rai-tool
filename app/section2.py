@@ -5,8 +5,8 @@ import pipeline as pipeline
 def section2(st, i):
     st.header(f"Section 2.{i}: Intended Uses")
 
-    intended_use = st.session_state.get(f'iu{i}', "").strip()
-    intended_use_description = st.session_state.get(f'iu{i}_des', "").strip()
+    intended_use = st.session_state.get(f'us{i}', "").strip()
+    intended_use_description = st.session_state.get(f'us{i}_des', "").strip()
     sys_info = f"I am building a {st.session_state.get('system_name', '__')} application. {st.session_state.get('system_description', '__')} {st.session_state.get('system_purpose', '__')} An intended use is {intended_use}. The description of this indented use is {intended_use_description}"
 
     st.write(f"Intended use #1 : **{intended_use if intended_use != '' else '[Name of intended use]'}**")

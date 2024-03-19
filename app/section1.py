@@ -3,22 +3,22 @@ import pandas as pd
 def section1(st):
     st.header("Section 1: System Information")
 
+    st.write("In this section, you will provide information about your system. This foundational data is critical for understanding the operational context and purpose of your system, which will enable a more thorough and responsible assessment of its impact. Please follow the instructions below to complete this section.")
+
     st.session_state['system_name'] = st.text_input("**System Name:**", value=st.session_state.get("system_name", ""))
     
-    st.session_state['system_description'] = st.text_area("**System description:** _Briefly explain, in plain language, what you're building. This will give reviewers the necessary context to understand the system and the environment in which it operates._", value=st.session_state.get("system_description", ""))
+    st.session_state['system_description'] = st.text_area("**System description:** _Please provide a brief overview of the system you are building. Describe in simple terms and try to avoid jargon or technical terms._", value=st.session_state.get("system_description", ""), help="Consider: \n- What are you building? \n- What does it do? \n - How does it work?")
     
-    st.session_state['system_purpose'] = st.text_area("**System purpose:** _Briefly describe the purpose of the system and system features, focusing on how the system will address the needs of the people who use it. Explain how the AI technology contributes to achieving these objectives._", value=st.session_state.get("system_purpose", ""))
+    st.session_state['system_purpose'] = st.text_area("""**System purpose:** _Please briefly describe the purpose of the system and system features, focusing on how the system will address the needs of the people who use it. Explain how the AI technology contributes to achieving these objectives_""", value=st.session_state.get("system_purpose", ""), help="**Focus on the why**.\nThis statement should include:\n1. the end user or primary customer of the system,\n2. how they complete this task today, or their current situation,\n3. the value that the system is intended to deliver,\n4. how it improves on today's situation.")
 
-    st.subheader("Intended uses")
-    st.write("_Intended uses are the uses of the system your team is designing and testing for. An intended use is a description of who will use the system, for what task or purpose, and where they are when using the system. They are not the same as system features, as any number of features could be part of an intended use. Fill in the table with a description of the system's intended use(s)._")
-
+    st.subheader("User stories")
+    st.markdown("_User Stories describe the uses of the system from the perspective of an end user. It typically follows the format of: 'As a [role], I want [function], so that [value]'. Please describe at least 1-2 use cases. The following sections will be completed based on your primary User Story that should involve some notion of AI usage._", help="Example User Story:\n\nAs a *product manager*, \n\nI want *an AI-powered feature that can automatically categorize customer feedback into actionable insights*,\n\n so that *we can more efficiently identify and prioritize improvements to our product, enhancing user satisfaction and engagement*.")
     
-    for i in range(st.session_state['num_iu']):
-        st.write(f"**Intended use #{i+1}**")
-        st.session_state[f'iu{i+1}'] = st.text_input(f"Intended Use {i+1} Name", value=st.session_state.get(f"iu{i+1}", ""))
-        st.session_state[f'iu{i+1}_des'] = st.text_input(f"Intended Use {i+1} Description", value=st.session_state.get(f"iu{i+1}_des", ""))
+    for i in range(st.session_state['num_us']):
+        st.write(f"**User Stories #{i+1}**")
+        st.session_state[f'us{i+1}_des'] = st.text_input(f"User Story {i+1} Description", value=st.session_state.get(f"us{i+1}_des", ""))
 
-    add_iu_button = st.button("Add Intended Use")
-    if add_iu_button:
-        st.session_state['num_iu'] += 1
+    add_us_button = st.button("Add User Story")
+    if add_us_button:
+        st.session_state['num_us'] += 1
     
