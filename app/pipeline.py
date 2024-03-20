@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import rai_guide as rai_guide
 import random
 from cred import KEY 
-from angle_emb import AnglE
+from sentence_transformers import SentenceTransformer
 
 gpt3 = "gpt-3.5-turbo"
 # gpt4 = "gpt-3.5-turbo"
@@ -17,7 +17,7 @@ openai.api_key = KEY
 
 prompt = [ {"role": "system", "content": "You are an advanced AI Language Model trained in ethical reasoning and Responsible AI Impact Assessment. Your task is to provide a thorough Responsible AI Impact Assessment analysis of the given situation to the best of your ability.Keep your responses specific to the system I describe."} ]
 
-model = AnglE.from_pretrained('WhereIsAI/UAE-Large-V1', pooling_strategy='cls').cuda()
+model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1")
 
 logging.basicConfig(
     level=logging.INFO, 
@@ -58,6 +58,38 @@ demographic_groups_list = [
     "Level of education",
     "Religion"
 ]
+
+def get_direct_stakeholders(sys_info):
+    messages = prompt + [{'role': 'user', 'content': sys_info}]
+
+    messages.append({'role': 'user', 'content': 
+                    f"{rai_guide.direct_stakeholder_def}\nIdentify the most relevant stakeholder(s) categorized into 'direct obvious' and 'direct surprising' stakeholders. Label the categories with h5 headings"})
+
+    response = openai.ChatCompletion.create( 
+        model=gpt4, 
+        messages=messages
+    )     
+
+    logging.info(f"======== Direct Stakeholders ========")
+    logging.info(response['choices'][0]['message']['content'])
+
+    return response['choices'][0]['message']['content']
+
+def get_indirect_stakeholders(sys_info):
+    messages = prompt + [{'role': 'user', 'content': sys_info}]
+
+    messages.append({'role': 'user', 'content': 
+                    f"{rai_guide.direct_stakeholder_def}\nIdentify the most relevant stakeholder(s) categorized into 'indirect obvious' and 'indirect surprising' stakeholders."})
+
+    response = openai.ChatCompletion.create( 
+        model=gpt4, 
+        messages=messages
+    )     
+
+    logging.info(f"======== Indirect Stakeholders ========")
+    logging.info(response['choices'][0]['message']['content'])
+
+    return response['choices'][0]['message']['content']
 
 def get_stakeholders(sys_info):
     messages = prompt + [{'role': 'user', 'content': sys_info}]
@@ -175,7 +207,7 @@ def refine_scenarios(scenarios_sampled, sys_info):
 
 def sampling_0(scenarios):
     logging.info("======== Sampling Scenarios ... ========")
-    sentence_embeddings = model.encode(scenarios, to_numpy=True)
+    sentence_embeddings = model.encode(scenarios)
 
     num_clusters = 10
     clustering_model = KMeans(n_clusters=num_clusters)

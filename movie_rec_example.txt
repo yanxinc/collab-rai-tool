@@ -7,6 +7,9 @@ A system that provides movie recommendations to users based on their watching hi
 # purpose:
 The purpose of this system is to suggest movies to users to allow for better user experience. The users (movie watchers) would be able to receive more personalized recommendations. The AI / ML model uses collaborative filtering algorithms to accumulate and learn from users’ past evaluations of movies to approximate ratings of unrated movies and then give recommendations based on these estimates.
 
+# user story 1:
+As a movie watcher, I want to request for personalized recommendations based on my interest and previous watch history, so that I can discover new films that match my preferences and enhance my viewing experience.
+
 # intended use 1:
 request for movie recommendations
 

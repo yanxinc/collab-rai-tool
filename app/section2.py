@@ -1,133 +1,81 @@
 import pandas as pd
 import rai_guide as rai_guide
 import pipeline as pipeline
+import time
+import helper
 
-def section2(st, i):
-    st.header(f"Section 2.{i}: Intended Uses")
+def stakeholder_section(st, sys_info, us_description, is_direct):
+    sh_type = "direct" if is_direct else "indirect"
+    sh_enum = helper.Task.DIRECT_SH.value if is_direct else helper.Task.INDIRECT_SH.value
 
-    intended_use = st.session_state.get(f'us{i}', "").strip()
-    intended_use_description = st.session_state.get(f'us{i}_des', "").strip()
-    sys_info = f"I am building a {st.session_state.get('system_name', '__')} application. {st.session_state.get('system_description', '__')} {st.session_state.get('system_purpose', '__')} An intended use is {intended_use}. The description of this indented use is {intended_use_description}"
+    if us_description != '' and f'{sh_enum}_task_status' not in st.session_state:
+        helper.send_req(st, sys_info, sh_enum)
 
-    st.write(f"Intended use #1 : **{intended_use if intended_use != '' else '[Name of intended use]'}**")
+    st.subheader(f"{sh_type.capitalize()} Stakeholders") 
+    st.write(rai_guide.direct_stakeholder_def) if is_direct else st.write(rai_guide.indirect_stakeholder_def)
+    st.write(f"_Click the button below to brainstorm {sh_type} stakeholders_")
 
-    st.subheader("Stakeholders, potential benefits, and potential harms")
-    st.write("**1.** _Identify the system's stakeholders for this intended use. Then, for each stakeholder, document the goals and potential concerns._")
-    stakeholder_df = st.data_editor(
-        pd.DataFrame(
+    stakeholder_button = st.button(f"Help me brainstorm potential {sh_type} stakeholders",use_container_width=True)
+
+    if f'{sh_enum}_clicked' in st.session_state and f'{sh_enum}_result' in st.session_state:
+        st.write(st.session_state[f'{sh_enum}_result'])
+
+    if stakeholder_button:
+        if us_description != '':
+            st.session_state[f'{sh_enum}_clicked'] = True
+            if f'{sh_enum}_task_status' in st.session_state:
+                if st.session_state[f'{sh_enum}_task_status'] == 'Running':
+                    with st.spinner('Generating Stakeholders...'):
+                        while True:
+                            result = helper.poll_task_status(st, st.session_state[f'{sh_enum}_task_id'], sh_enum)
+                            if result:
+                                st.write(result)
+                                st.session_state[f"{sh_enum}_result"] = result
+                                break
+                            else:
+                                time.sleep(5)
+        else:
+            st.write("Please fill in an user story first")
+
+    def update_df():
+        updates = st.session_state[f'{sh_type}_stakeholders_changes']
+        df = st.session_state[f'{sh_type}_stakeholders']
+
+        # Handle edited rows
+        for idx, changes in updates['edited_rows'].items():
+            for col, val in changes.items():
+                df.at[idx, col] = val
+                
+        # Handle added rows
+        for new_row in updates['added_rows']:
+            df = df.append(new_row, ignore_index=True)
+            
+        # Handle deleted rows
+        df = df.drop(updates['deleted_rows']).reset_index(drop=True)
+
+    if f'{sh_type}_stakeholders' not in st.session_state:
+        st.session_state[f'{sh_type}_stakeholders'] = pd.DataFrame(
             [
                 {"Stakeholders": "", "Goals": "", "Concerns":""},
                 {"Stakeholders": "", "Goals": "", "Concerns":""},
                 {"Stakeholders": "", "Goals": "", "Concerns":""},
                 {"Stakeholders": "", "Goals": "", "Concerns":""},
                 {"Stakeholders": "", "Goals": "", "Concerns":""},
-                {"Stakeholders": "", "Goals": "", "Concerns":""},
-                {"Stakeholders": "", "Goals": "", "Concerns":""},
-                {"Stakeholders": "", "Goals": "", "Concerns":""},
-                {"Stakeholders": "", "Goals": "", "Concerns":""},
-                {"Stakeholders": "", "Goals": "", "Concerns":""},
             ]
-        ),  num_rows="dynamic", hide_index=False, use_container_width=True)
-    
-    st.session_state[f'stakeholders_{i}'] = stakeholder_df
+        )
 
+    st.data_editor(st.session_state[f'{sh_type}_stakeholders'],  num_rows="dynamic", hide_index=False, use_container_width=True, key=f'{sh_type}_stakeholders_changes', on_change=update_df)
 
-    with st.expander("Stakeholders Identification Guide"):
-        st.write(rai_guide.stakeholder_def)
+def section2(st):
+    st.header(f"Section 2: Stakeholders Identification")
 
-        if f"stakeholders_result_{i}" in st.session_state and st.session_state[f"stakeholders_result_{i}"]:
-            st.write(st.session_state[f"stakeholders_result_{i}"])
+    us_description = st.session_state.get(f'us1_des', "").strip()
+    sys_info = f"I am building a {st.session_state.get('system_name', '__')} application. {st.session_state.get('system_description', '__')} {st.session_state.get('system_purpose', '__')} An user story is {us_description}"
 
-        stakeholder_button = st.button("Brainstorm stakeholders")
+    st.write(f"User Story #1 : **{us_description if us_description != '' else '[Please enter an user story in section 1]'}**")
 
-        if stakeholder_button:
-            if intended_use != '':
-                st.session_state[f"stakeholders_result_{i}"] = pipeline.get_stakeholders(sys_info)
-                st.write(st.session_state[f"stakeholders_result_{i}"])
-            else:               
-                st.write("Please fill in an inteded use first")
+    st.write("_First, identify the system's stakeholders for your primary user story. Think broadly about the people impacted directly and indirectly. Then, for each stakeholder, document the goals and potential concerns._")
 
-    st.subheader("Fairness considerations")
-    st.write("**2.** For each Fairness Goal that applies to the system, \n1) identify the relevant stakeholder(s) (e.g., system user, person impacted by the system); \n2) identify any demographic groups, including marginalized groups, that may require fairness considerations; and \n3) prioritize these groups for fairness consideration and explain how the fairness consideration applies. \nIf the Fairness Goal does not apply to the system, enter “N/A”.")
-
-    with st.expander("General Fairness Goals Guide"):
-        st.write("**Demographic groups** can refer to any population group that shares one or more particular demographic characteristics. Depending on the AI system and context of deployment, the list of identified demographic groups will change.")
-        st.write("**Marginalized groups** are demographic groups who may have an atypical or even unfair experience with the system if their needs and context are not considered. May include minorities, stigmatized groups, or other particularly vulnerable groups. Additionally, marginalized groups can also include children, the elderly, indigenous peoples, and religious minorities. Groups to include for consideration will depend in part on the geographic areas and intended uses of your system.")
-
-        st.write(rai_guide.f_2)
-
-    st.write("#### Goal F1: Quality of service")
-    st.write("_This Goal applies to AI systems when system users or people impacted by the system with different demographic characteristics might experience differences in quality of service that can be remedied by building the system differently. If this Goal applies to the system, complete the table below describing the appropriate stakeholders for this intended use._")
-    st.session_state[f'goal_f1_1_{i}'] =  st.text_input("Which stakeholders will be affected? (Format: comma separated list. e.g. user1,user2,...)", value=st.session_state.get(f"goal_f1_1_{i}", ""))
-
-    with st.expander("Goal F1 Guide"):
-        with st.form("f1_guide"):
-            st.write(rai_guide.f1_guide)
+    stakeholder_section(st, sys_info, us_description, True)
+    stakeholder_section(st, sys_info, us_description, False)
         
-            f1_stakeholders_on = st.toggle('Generate stakeholder for me')
-            f1_brainstorm = st.form_submit_button("Brainstorm Scenarios concerning Quality of Service")
-
-            if f"f1_scenarios_{i}" in st.session_state:
-                st.write(st.session_state[f"f1_scenarios_{i}"])
-
-            if f1_brainstorm:
-                if f1_stakeholders_on or st.session_state[f'goal_f1_1_{i}'] == '':
-                    res = pipeline.generate_scenarios(st, sys_info, 'f1')
-                else:
-                    res = pipeline.generate_scenarios(st, sys_info, 'f1', st.session_state[f'goal_f1_1_{i}'])
-                st.write(res)
-                st.session_state[f"f1_scenarios_{i}"] = res
-
-    st.session_state[f'goal_f1_2_{i}'] =  st.text_area("Describe any potential harms", value=st.session_state.get(f"goal_f1_2_{i}", ""))
-    st.session_state[f'goal_f1_3_{i}'] =  st.text_area("Describe your ideas for mitigations", value=st.session_state.get(f"goal_f1_3_{i}", ""))
-
-    st.write("#### Goal F2: Allocation of resources and opportunities")
-    st.write("_This Goal applies to AI systems that generate outputs that directly affect the allocation of resources or opportunities relating to finance, education, employment, healthcare, housing, insurance, or social welfare. If this Goal applies to the system, complete the table below describing the appropriate stakeholders for this intended use._")
-    st.session_state[f'goal_f2_1_{i}'] =  st.text_input("Which stakeholders will be affected? (Format: comma separated list. e.g. user1,user2,...) ", value=st.session_state.get(f"goal_f2_1_{i}", ""))
-    
-    with st.expander("Goal F2 Guide"):
-        with st.form("f2_guide"):
-            st.write(rai_guide.f2_guide)
-        
-            f2_stakeholders_on = st.toggle('Generate stakeholder for me')
-            f2_brainstorm = st.form_submit_button("Brainstorm Scenarios concerning Allocation of resources and opportunities Considerations")
-
-            if f"f2_scenarios_{i}" in st.session_state:
-                st.write(st.session_state[f"f2_scenarios_{i}"])
-
-            if f2_brainstorm:
-                if f2_stakeholders_on:
-                    res = pipeline.generate_scenarios(st, sys_info, 'f2')
-                else:
-                    res = pipeline.generate_scenarios(st, sys_info, 'f2', str(stakeholder_df['Stakeholders'].tolist()))
-                st.write(res)
-                st.session_state[f"f2_scenarios_{i}"] = res
-                print("f2_scenarios updated")
-
-    st.session_state[f'goal_f2_2_{i}'] =  st.text_area("Describe any potential harms ", value=st.session_state.get(f"goal_f2_2_{i}", ""))
-    st.session_state[f'goal_f2_3_{i}'] =  st.text_area("Describe your ideas for mitigations ", value=st.session_state.get(f"goal_f2_3_{i}", ""))
-
-    st.write("#### Goal F3: Minimization of stereotyping, demeaning, and erasing outputs")
-    st.write("_This Goal applies to AI systems when system outputs include descriptions, depictions, or other representations of people, cultures, or society. If this Goal applies to the system, complete the table below describing the appropriate stakeholders for this intended use._")
-    st.session_state[f'goal_f3_1_{i}'] =  st.text_input("Which stakeholders will be affected? (Format: comma separated list. e.g. user1,user2,...)  ", value=st.session_state.get(f"goal_f3_1_{i}", ""))
-
-    with st.expander("Goal F3 Guide"):
-        with st.form("f3_guide"):
-            st.write(rai_guide.f3_guide)
-        
-            f3_stakeholders_on = st.toggle('Generate stakeholder for me')
-            f3_brainstorm = st.form_submit_button("Brainstorm Scenarios concerning stereotyping, demeaning, and erasing outputs")
-
-            if f"f3_scenarios_{i}" in st.session_state:
-                st.write(st.session_state[f"f3_scenarios_{i}"])
-
-            if f3_brainstorm:
-                if f3_stakeholders_on:
-                    res = pipeline.generate_scenarios(st, sys_info, 'f3')
-                else:
-                    res = pipeline.generate_scenarios(st, sys_info, 'f3', str(stakeholder_df['Stakeholders'].tolist()))
-                st.write(res)
-                st.session_state[f"f3_scenarios_{i}"] = res
-
-    st.session_state[f'goal_f3_2_{i}'] =  st.text_area("Describe any potential harms  ", value=st.session_state.get(f"goal_f3_2_{i}", ""))
-    st.session_state[f'goal_f3_3_{i}'] =  st.text_area("Describe your ideas for mitigations  ", value=st.session_state.get(f"goal_f3_3_{i}", ""))
