@@ -53,7 +53,7 @@ def background_task(data: Data, task_id: str, task: Task):
 
 @app.post("/pipeline-req/")
 async def run_task(data: Data, background_tasks: BackgroundTasks):
-    print(f"Received Request: Task{data.task}")
+    print(f"Received Request: {Task(data.task)}")
 
     task_id = str(uuid.uuid4())
 

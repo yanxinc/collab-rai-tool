@@ -3,7 +3,6 @@ app_dir = os.path.dirname(os.path.dirname(__file__))
 helpers_dir = os.path.join(app_dir, 'helpers')
 sys.path.append(helpers_dir)
 import helper, rai_guide
-import time
 
 def section4(st):
     st.subheader("Fairness Considerations")
@@ -18,42 +17,11 @@ def section4(st):
 
     all_stakeholders = helper.get_stakeholders(st)
 
-    f_enum = helper.Task.F2.value
-
-    sys_info = f"I am building a {st.session_state.get('system_name', '__')} application. {st.session_state.get('system_description', '__')} {st.session_state.get('system_purpose', '__')} An user story is {st.session_state.get(f'us1_des', '').strip()}"
-
-    if all_stakeholders != [] and f'{f_enum}_task_status' not in st.session_state:
-        helper.send_req(st, sys_info, f_enum, all_stakeholders)
-        print("sending request for f2")
-
     st.session_state['f2_selected_stakeholders'] = st.multiselect(
         'Which stakeholders will be affected?',
         all_stakeholders,
         st.session_state.get('f2_selected_stakeholders', [])
     )
-
-    f2_brainstorm = st.button("Help me brainstorm scenarios concerning Allocation of resources and opportunities", use_container_width=True)
-
-    if f'f2_clicked' in st.session_state and f'{f_enum}_result' in st.session_state:
-        st.write(st.session_state[f'{f_enum}_result'])
-
-    if f2_brainstorm:
-        if all_stakeholders != []:
-            st.session_state[f'f2_clicked'] = True
-            if f'{f_enum}_task_status' in st.session_state:
-                if st.session_state[f'{f_enum}_task_status'] == 'Running':
-                    with st.spinner('Generating Scenarios...'):
-                        while True:
-                            result = helper.poll_task_status(st, st.session_state[f'{f_enum}_task_id'], f_enum)
-                            if result:
-                                st.write(result)
-                                st.session_state[f"{f_enum}_result"] = result
-                                break
-                            else:
-                                time.sleep(10)
-        else:
-            st.write("Please fill in stakeholders first")
-
 
     st.write("For each identified stakeholder, consider the potential negative impacts and fairness issues that could arise from the system's deployment and use.")
     st.session_state[f'goal_f2_2'] =  st.text_area("Describe any potential harms ", value=st.session_state.get(f"goal_f2_2", ""))
