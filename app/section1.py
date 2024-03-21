@@ -18,7 +18,7 @@ def section1(st):
         st.write(f"**User Stories #{i+1}**")
         st.session_state[f'us{i+1}_des'] = st.text_area(f"User Story {i+1} Description", value=st.session_state.get(f"us{i+1}_des", ""))
 
-    add_us_button = st.button("Add User Story")
+    add_us_button = st.button("Add More User Story")
     if add_us_button:
         st.session_state['num_us'] += 1
     

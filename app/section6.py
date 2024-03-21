@@ -5,7 +5,7 @@ def section6(st):
         st.write(st.session_state["sh_direct_1"])
 
     st.subheader("Potential harms and preliminary mitigations")
-    st.write("**6** _Gather the potential harms you identified earlier in the Impact Assessment in this table (check the stakeholder table, fairness considerations, adverse impact section, and any other place where you may have described potential harms). Use the mitigations prompts in the Impact Assessment Guide to understand if the Responsible AI Standard can mitigate some of the harms you identified. Discuss the harms that remain unmitigated with your team and potential reviewers._")
+    st.write("_Gather the potential harms you identified earlier in the Impact Assessment in this table (check the stakeholder table, fairness considerations, adverse impact section, and any other place where you may have described potential harms). Use the mitigations prompts in the Impact Assessment Guide to understand if the Responsible AI Standard can mitigate some of the harms you identified. Discuss the harms that remain unmitigated with your team and potential reviewers._")
 
     for i in range(st.session_state['num_hm']):
         st.write(f"**Harm & Mitigation #{i+1}**")

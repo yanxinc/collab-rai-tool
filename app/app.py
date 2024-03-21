@@ -1,6 +1,9 @@
 import streamlit as st
 from section1 import section1
 from section2 import section2
+from section3 import section3
+from section4 import section4
+from section5 import section5
 from section6 import section6
 
 def main():
@@ -14,6 +17,9 @@ def main():
     sections = {
         "Section 1: System Information": section1,
         "Section 2: Stakeholders Identification": section2,
+        "Section 3: Fairness Goal 1 - Quality of service": section3,
+        "Section 4: Fairness Goal 2 - Allocation of resources and opportunities": section4,
+        "Section 5: Fairness Goal 3 - Minimization of stereotyping, demeaning, and erasing outputs": section5,
         "Section 6: Potential harms and mitigations": section6
     }
 

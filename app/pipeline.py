@@ -332,7 +332,7 @@ def log_helper(message, start_time):
     print(f"{message} - {duration(time.time() - start_time)}")
     logging.info(f"{message} - {duration(time.time() - start_time)}")
 
-def generate_scenarios(st, sys_info, goal, given_stakeholders=None):
+def generate_scenarios(sys_info, goal, given_stakeholders=None):
     if goal not in ['f1', 'f2', 'f3']: return "Invalid Goal"
 
     logging.info(f"==== Generating scenarios for the following scenario: ====")
@@ -342,7 +342,8 @@ def generate_scenarios(st, sys_info, goal, given_stakeholders=None):
     start = time.time()
     if given_stakeholders: 
         logging.info(given_stakeholders)
-        stakeholders = given_stakeholders.split(",")
+        stakeholders = given_stakeholders
+        # stakeholders = given_stakeholders.split(",")
     else:
         stakeholders = stakeholder_list_helper(get_stakeholders(sys_info))
     log_helper("Stakeholder Generated", start)
@@ -368,19 +369,22 @@ def generate_scenarios(st, sys_info, goal, given_stakeholders=None):
     picked_scenarios = select_final_scenarios(scenarios, goal)
     final_scenarios = remove_correctives(picked_scenarios)
     logging.critical(f"==== Final Scenarios -  {duration(time.time() - start)}: ====")
-    print(final_scenarios)
-    logging.critical(final_scenarios)
 
-    return f"""
+    result = f"""
 ### Scenario 1: {generate_heading(final_scenarios[0])}\n
 {final_scenarios[0]}
 ### Scenario 2: {generate_heading(final_scenarios[1])}\n
 {final_scenarios[1]}"""
+    print(result)
+    logging.critical(result)
+
+    return result
 
 contexts = [
     {
         'sys_info': "Situation: I am building a Movie Recommendation System application. A system that provides movie recommendations to users based on their watching history and ratings data. The system can receive recommendation requests and needs to reply with a list of recommended movies. The purpose of this system is to suggest movies to users to allow for better user experience. The users (movie watchers) would be able to receive more personalized recommendations. The AI / ML model uses collaborative filtering algorithms to accumulate and learn from users' past evaluations of movies to approximate ratings of unrated movies and then give recommendations based on these estimates. An intended use is to request movie recommendations. The description of this intended use is users (movie watchers) can request personalized recommendations.",
-        'given_stakeholders': 'Movie Watchers, Content Providers'
+        'given_stakeholders': ['Movie Watchers', 'Movie Producers and Distributors', 'Advertisers', 'Streaming Services']
+        # 'given_stakeholders': 'Movie Watchers, Content Providers, '
     },
     {
         'sys_info':"I am building an internal AI recruiting tool. A system that reviews job applicants' resumes and uses artificial intelligence to give job candidates scores ranging from one to five stars. Models were trained to vet applicants by observing patterns in resumes submitted to the company over a 10-year period. The purpose of this system is to automate the recruitment process and find talented applicants. It saves time from having HRs go through all the applications and streamlines the process. The AI/ML model can greatly reduce hiring efforts.  An intended use is to rate job candidates. The description of this intended use is HRs can use this system to score candidates from the job applications / resumes they submit.",
@@ -398,7 +402,7 @@ contexts = [
 #     start = time.time()
 
 #     # generate_scenarios(None, context['sys_info'], 'f2', None)
-#     generate_scenarios(None, context['sys_info'], 'f1', context['given_stakeholders'])
+#     generate_scenarios(context['sys_info'], 'f2', context['given_stakeholders'])
 
 #     print(f"Duration: {duration(time.time() - start)}")
 

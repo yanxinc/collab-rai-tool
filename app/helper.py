@@ -4,11 +4,14 @@ from enum import Enum
 class Task(Enum):
     DIRECT_SH = 1
     INDIRECT_SH = 2
+    F1 = 3
+    F2 = 4
+    F3 = 5
 
 
-def send_req(st, sys_info, task_type):
+def send_req(st, sys_info, task_type, stakeholders=None):
     ENDPOINT = f"http://localhost:8000/pipeline-req"
-    response = requests.post(ENDPOINT,json={"sys_info": sys_info, "task": task_type})
+    response = requests.post(ENDPOINT,json={"sys_info": sys_info, "task": task_type, "stakeholders": stakeholders})
     if response.status_code == 200:
         st.session_state[f'{task_type}_task_id'] = response.json()['task_id']
         st.session_state[f'{task_type}_task_status'] = 'Running'
@@ -24,3 +27,18 @@ def poll_task_status(st,task_id, task_type):
             st.session_state[f'{task_type}_task_status'] = 'Completed'
             return result['result']
     return None
+
+def get_stakeholders(st):
+    if f'direct_stakeholders' not in st.session_state:
+        direct_stakeholders = []
+    else:
+        df = st.session_state[f'direct_stakeholders']
+        direct_stakeholders = df[df['Stakeholders'] != '']['Stakeholders'].tolist()
+
+    if f'indirect_stakeholders' not in st.session_state:
+        indirect_stakeholders = []
+    else:
+        df = st.session_state[f'indirect_stakeholders']
+        indirect_stakeholders = df[df['Stakeholders'] != '']['Stakeholders'].tolist()
+
+    return direct_stakeholders + indirect_stakeholders
