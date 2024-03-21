@@ -4,10 +4,14 @@ import re
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import rai_guide as rai_guide
 import random
-from cred import KEY 
 from sentence_transformers import SentenceTransformer
+import os, sys
+app_dir = os.path.dirname(__file__)
+helpers_dir = os.path.join(app_dir, 'helpers')
+sys.path.append(helpers_dir)
+import rai_guide
+from cred import KEY 
 
 gpt3 = "gpt-3.5-turbo"
 # gpt4 = "gpt-3.5-turbo"

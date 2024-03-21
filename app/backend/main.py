@@ -4,8 +4,12 @@ import time
 import uuid
 import pipeline
 from pydantic import BaseModel
-from helper import Task
 from typing import List,Optional
+import os, sys
+app_dir = os.path.dirname(__file__)
+helpers_dir = os.path.join(app_dir, 'helpers')
+sys.path.append(helpers_dir)
+from helper import Task
 
 class Data(BaseModel):
     sys_info: str
@@ -63,4 +67,4 @@ async def get_result(task_id: str):
     return {"task_id": task_id, "result": result}
 
 if __name__ == "__main__":
-    uvicorn.run("main:app")
+    uvicorn.run("main:app", host="0.0.0.0", port=8502)

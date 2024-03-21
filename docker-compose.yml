@@ -1,6 +1,18 @@
 version: '3.8'
 services:
-  streamlit:
-    build: .
+  streamlit-frontend:
+    build: 
+      context: .
+      dockerfile: ./app/frontend/Dockerfile
     ports:
-      - "8501:8501"
+      - 8501:8501
+    depends_on:
+      - pipeline-backend
+    environment:
+      BACKEND_URL: http://pipeline-backend:8502
+  pipeline-backend:
+    build: 
+      context: .
+      dockerfile: ./app/backend/Dockerfile
+    ports:
+      - 8502:8502

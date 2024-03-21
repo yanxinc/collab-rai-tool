@@ -5,3 +5,6 @@ __pycache__
 venv
 *.log
 cred.py
+logs
+*.ipynb
+.vscode

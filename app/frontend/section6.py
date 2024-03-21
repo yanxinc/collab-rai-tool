@@ -1,5 +1,3 @@
-import rai_guide as rai_guide
-
 def section6(st):
     if "sh_direct_1" in st.session_state:
         st.write(st.session_state["sh_direct_1"])

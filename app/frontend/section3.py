@@ -1,6 +1,8 @@
-import rai_guide as rai_guide
-import pipeline as pipeline
-import helper
+import os, sys
+app_dir = os.path.dirname(os.path.dirname(__file__))
+helpers_dir = os.path.join(app_dir, 'helpers')
+sys.path.append(helpers_dir)
+import helper, rai_guide
 
 def section3(st):
     st.subheader("Fairness Considerations")

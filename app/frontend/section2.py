@@ -1,8 +1,10 @@
 import pandas as pd
-import rai_guide as rai_guide
-import pipeline as pipeline
-import time
+import os, sys, time
+app_dir = os.path.dirname(os.path.dirname(__file__))
+helpers_dir = os.path.join(app_dir, 'helpers')
+sys.path.append(helpers_dir)
 import helper
+import rai_guide
 
 def stakeholder_section(st, sys_info, us_description, is_direct):
     sh_type = "direct" if is_direct else "indirect"

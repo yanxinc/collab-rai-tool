@@ -1,5 +1,3 @@
-import pandas as pd
-
 def section1(st):
     st.header("Section 1: System Information")
 
