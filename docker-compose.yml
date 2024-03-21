@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: ./app/frontend/Dockerfile
     ports:
-      - 8501:8501
+      - 8503:8503
     depends_on:
       - pipeline-backend
     environment:
