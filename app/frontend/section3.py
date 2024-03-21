@@ -31,8 +31,8 @@ def section3(st):
     )
 
     st.write("For each identified stakeholder, consider the potential negative impacts and fairness issues that could arise from the system's deployment and use.")
-    st.session_state[f'goal_f1_2'] =  st.text_area("Describe any potential harms ", value=st.session_state.get(f"goal_f2_2", ""))
+    st.session_state[f'goal_f1_2'] =  st.text_area("Describe any potential harms ", value=st.session_state.get(f"goal_f1_2", ""))
 
     st.write("After identifying potential harms, propose practical strategies to mitigate these issues. Consider both technical solutions and policy measures. Focus on actions that can be taken at various stages of your system's lifecycle to promote fairness. List the actions you might take to mitigate the potential harms and fairness issues you have identified.")
     st.markdown("Examples of mitigation strategies for 'Quality of Service' realted harms include evaluating the data sets and the system, then modifying the system to improve system performance for affected demographic groups while minimizing performance differences between identified demographic groups.", help="For example, people who speak language varieties that are underrepresented in the training data may experience worse quality of service for a voice transcription system. The system can be evaluated and modified to improve quality of service for these demographic groups.")
-    st.session_state[f'goal_f1_3'] =  st.text_area("Describe your ideas for mitigations ", value=st.session_state.get(f"goal_f2_3", ""))
+    st.session_state[f'goal_f1_3'] =  st.text_area("Describe your ideas for mitigations ", value=st.session_state.get(f"goal_f1_3", ""))
