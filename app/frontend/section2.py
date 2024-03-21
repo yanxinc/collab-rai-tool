@@ -20,7 +20,8 @@ def stakeholder_section(st, sys_info, us_description, is_direct):
     stakeholder_button = st.button(f"Help me brainstorm potential {sh_type} stakeholders",use_container_width=True)
 
     if f'{sh_enum}_clicked' in st.session_state and f'{sh_enum}_result' in st.session_state:
-        st.write(st.session_state[f'{sh_enum}_result'])
+        with st.container(border=True):
+            st.write(st.session_state[f'{sh_enum}_result'])
 
     if stakeholder_button:
         if us_description != '':
@@ -31,7 +32,8 @@ def stakeholder_section(st, sys_info, us_description, is_direct):
                         while True:
                             result = helper.poll_task_status(st, st.session_state[f'{sh_enum}_task_id'], sh_enum)
                             if result:
-                                st.write(result)
+                                with st.container(border=True):
+                                    st.write(result)
                                 st.session_state[f"{sh_enum}_result"] = result
                                 break
                             else:

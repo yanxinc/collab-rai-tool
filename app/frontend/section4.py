@@ -35,7 +35,8 @@ def section4(st):
     f2_brainstorm = st.button("Help me brainstorm scenarios concerning Allocation of resources and opportunities", use_container_width=True)
 
     if f'f2_clicked' in st.session_state and f'{f_enum}_result' in st.session_state:
-        st.write(st.session_state[f'{f_enum}_result'])
+        with st.container(border=True):
+            st.write(st.session_state[f'{f_enum}_result'])
 
     if f2_brainstorm:
         if all_stakeholders != []:
@@ -46,7 +47,8 @@ def section4(st):
                         while True:
                             result = helper.poll_task_status(st, st.session_state[f'{f_enum}_task_id'], f_enum)
                             if result:
-                                st.write(result)
+                                with st.container(border=True):
+                                    st.write(result)
                                 st.session_state[f"{f_enum}_result"] = result
                                 break
                             else:

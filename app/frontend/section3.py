@@ -35,7 +35,8 @@ def section3(st):
     f1_brainstorm = st.button("Help me brainstorm scenarios concerning Quality of Service", use_container_width=True)
 
     if f'f1_clicked' in st.session_state and f'{f_enum}_result' in st.session_state:
-        st.write(st.session_state[f'{f_enum}_result'])
+        with st.container(border=True):
+            st.write(st.session_state[f'{f_enum}_result'])
 
     if f1_brainstorm:
         if all_stakeholders != []:
@@ -46,7 +47,8 @@ def section3(st):
                         while True:
                             result = helper.poll_task_status(st, st.session_state[f'{f_enum}_task_id'], helper.Task.F1.value)
                             if result:
-                                st.write(result)
+                                with st.container(border=True):
+                                    st.write(result)
                                 st.session_state[f"{f_enum}_result"] = result
                                 break
                             else:

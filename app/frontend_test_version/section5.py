@@ -36,7 +36,8 @@ def section5(st):
     f3_brainstorm = st.button("Help me brainstorm scenarios concerning Minimization of stereotyping, demeaning, and erasing outputs", use_container_width=True)
 
     if f'f3_clicked' in st.session_state and f'{f_enum}_result' in st.session_state:
-        st.write(st.session_state[f'{f_enum}_result'])
+        with st.container(border=True):
+            st.write(st.session_state[f'{f_enum}_result'])
 
     if f3_brainstorm:
         if all_stakeholders != []:
@@ -47,7 +48,8 @@ def section5(st):
                         while True:
                             result = helper.poll_task_status(st, st.session_state[f'{f_enum}_task_id'], helper.Task.F3.value)
                             if result:
-                                st.write(result)
+                                with st.container(border=True):
+                                    st.write(result)
                                 st.session_state[f"{f_enum}_result"] = result
                                 break
                             else:

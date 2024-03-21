@@ -23,6 +23,17 @@ def main():
         "Section 6: Potential harms and mitigations": section6
     }
 
+    # set container background color
+    st.markdown(
+"""
+    <style>
+    .st-emotion-cache-r421ms {
+        background-color: #fbfaf5;
+        color: black;
+    } 
+    </style>
+""", unsafe_allow_html=True)
+
     # Create a sidebar for page selection
     selected_section = st.sidebar.radio("Sections", list(sections.keys()))
 
