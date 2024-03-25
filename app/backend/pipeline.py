@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import random
 from sentence_transformers import SentenceTransformer
 import os, sys
-app_dir = os.path.dirname(__file__)
+app_dir = os.path.dirname(os.path.dirname(__file__))
 helpers_dir = os.path.join(app_dir, 'helpers')
 sys.path.append(helpers_dir)
 import rai_guide
@@ -67,7 +67,7 @@ def get_direct_stakeholders(sys_info):
     messages = prompt + [{'role': 'user', 'content': sys_info}]
 
     messages.append({'role': 'user', 'content': 
-                    f"{rai_guide.direct_stakeholder_def}\nIdentify the most relevant stakeholder(s) categorized into 'direct obvious' and 'direct surprising' stakeholders. Label the categories with h5 headings"})
+                    f"{rai_guide.direct_stakeholder_def}\nIdentify the most relevant stakeholder(s) categorized into 'direct obvious' and 'direct surprising' stakeholders. Label the categories with h5 headings (i.e. '##### Direct Obvious Stakeholders' and '##### Direct Surprising Stakeholders')."})
 
     response = openai.ChatCompletion.create( 
         model=gpt4, 
@@ -83,7 +83,7 @@ def get_indirect_stakeholders(sys_info):
     messages = prompt + [{'role': 'user', 'content': sys_info}]
 
     messages.append({'role': 'user', 'content': 
-                    f"{rai_guide.direct_stakeholder_def}\nIdentify the most relevant stakeholder(s) categorized into 'indirect obvious' and 'indirect surprising' stakeholders."})
+                    f"{rai_guide.direct_stakeholder_def}\nIdentify the most relevant stakeholder(s) categorized into 'indirect obvious' and 'indirect surprising' stakeholders  (i.e. '##### Inirect Obvious Stakeholders' and '##### Indirect Surprising Stakeholders')."})
 
     response = openai.ChatCompletion.create( 
         model=gpt4, 

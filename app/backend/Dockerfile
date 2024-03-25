@@ -9,9 +9,10 @@ COPY ./app/backend/requirements.txt .
 
 RUN pip3 install -r requirements.txt
 
-COPY ./app/backend .
+COPY ./app/backend ./backend
 COPY ./app/helpers ./helpers
 
 EXPOSE 8502
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8502" ,"--reload"]
+CMD ["python", "backend/main.py"]
+# CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8502" ,"--reload"]

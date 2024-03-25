@@ -1,0 +1,19 @@
+# system name: 
+Internal AI recruiting tool
+
+# description:
+A system that reviews job applicants’ resumes and uses artificial intelligence to give job candidates scores ranging from one to five stars. Models were trained to vet applicants by observing patterns in resumes submitted to the company over a 10-year period
+
+# purpose:
+The purpose of this system is to automate the recruitment process and find talented applicants. It saves time from having HRs go through all the applications and streamlines the process. The AI/ML model can greatly reduce hiring efforts. 
+
+# user story 1:
+As a hiring manager at a tech company, I want a tool that reviews and rates job applicants’ resumes, so that I can efficiently identify the most talented candidates and streamline the recruitment process.
+
+# intended use 1:
+rate job candidates
+
+# intended use 1 description:
+HRs can use this system to score candidates from the job applications / resumes they submit. 
+
+

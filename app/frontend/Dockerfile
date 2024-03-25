@@ -15,6 +15,7 @@ COPY ./app/frontend/requirements.txt .
 
 RUN pip3 install -r requirements.txt
 
+COPY .streamlit .streamlit
 COPY ./app/frontend ./frontend
 COPY ./app/helpers ./helpers
 

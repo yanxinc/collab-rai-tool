@@ -35,12 +35,12 @@ def get_stakeholders(st):
         direct_stakeholders = []
     else:
         df = st.session_state[f'direct_stakeholders']
-        direct_stakeholders = df[df['Stakeholders'] != '']['Stakeholders'].tolist()
+        direct_stakeholders = df[df['Direct Stakeholders'] != '']['Direct Stakeholders'].tolist()
 
     if f'indirect_stakeholders' not in st.session_state:
         indirect_stakeholders = []
     else:
         df = st.session_state[f'indirect_stakeholders']
-        indirect_stakeholders = df[df['Stakeholders'] != '']['Stakeholders'].tolist()
+        indirect_stakeholders = df[df['Indirect Stakeholders'] != '']['Indirect Stakeholders'].tolist()
 
     return direct_stakeholders + indirect_stakeholders
