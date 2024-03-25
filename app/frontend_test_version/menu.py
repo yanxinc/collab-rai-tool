@@ -17,10 +17,12 @@ def menu(st):
 
     if 'can_display_fairness_sections' not in st.session_state: st.session_state['can_display_fairness_sections'] = False
     dispaly_fairness_goals = st.session_state['can_display_fairness_sections']
-    st.sidebar.page_link("pages/section3.py", label="Section 3: Fairness Goal 1 - Quality of service", disabled=not dispaly_fairness_goals),
-    st.sidebar.page_link("pages/section4.py", label="Section 4: Fairness Goal 2 - Allocation of resources and opportunities", disabled=not dispaly_fairness_goals),
-    st.sidebar.page_link("pages/section5.py", label="Section 5: Fairness Goal 3 - Minimization of stereotyping, demeaning, and erasing outputs", disabled=not dispaly_fairness_goals),
-
-
-    display_section6 = 'goal_f3_2' in st.session_state and st.session_state['goal_f3_2'] != "" and 'goal_f3_3' in st.session_state and st.session_state['goal_f3_3'] != ""
-    st.sidebar.page_link("pages/section6.py", label="Section 6: Potential harms and mitigations", disabled=not display_section6),
+    st.sidebar.page_link("pages/section4.py", label="Section 3: Allocation of resources and opportunities", disabled=not dispaly_fairness_goals),
+    st.sidebar.page_link("pages/section5.py", label="Section 4: Minimization of stereotyping, demeaning, and erasing outputs", disabled=not dispaly_fairness_goals),
+    
+    
+    st.sidebar.page_link("pages/section3.py", label="Section 5: Quality of service", disabled=True),
+    st.sidebar.page_link("pages/section6.py", label="Section 6: Potential harms and mitigations", disabled=True),
+    st.sidebar.page_link("pages/section7.py", label="Section 7: Technology readiness assessment, task complexity, role of humans, and deployment environment complexity", disabled=True),
+    st.sidebar.page_link("pages/section8.py", label="Section 8: Adverse Impact", disabled=True),
+    st.sidebar.page_link("pages/section9.py", label="Section 9: Data Requirements", disabled=True),

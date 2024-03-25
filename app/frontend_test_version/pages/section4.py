@@ -11,13 +11,20 @@ st.subheader("Fairness Considerations")
 
 st.write("For the following Fairness Goal, \n1) Select the relevant stakeholder(s) (e.g., system user, person impacted by the system); \n2) Consider potential AI related harms and consequences that may arise from the system; and \n3) Describe your ideas for mitigations.")
 
-st.write("#### Goal F2: Allocation of resources and opportunities")
+st.write("#### Goal: Allocation of resources and opportunities")
 
 st.write(f"_This Goal applies to AI systems that generate outputs that directly affect the allocation of resources or opportunities relating to finance, education, employment, healthcare, housing, insurance, or social welfare. Consider: {rai_guide.f2_guide}_")
 
 st.markdown("_When considering this fairness goal, think about different demographic group of stakeholders and consider marginalized groups._", help="**Demographic groups** can refer to any population group that shares one or more particular demographic characteristics. Depending on the AI system and context of deployment, the list of identified demographic groups will change.\n\n**Marginalized groups** are demographic groups who may have an atypical or even unfair experience with the system if their needs and context are not considered. May include minorities, stigmatized groups, or other particularly vulnerable groups. Additionally, marginalized groups can also include children, the elderly, indigenous peoples, and religious minorities. Groups to include for consideration will depend in part on the geographic areas and intended uses of your system.")
 
 all_stakeholders = helper.get_stakeholders(st)
+
+# Start generating F3 scenarios as soon as stakeholders are filled & user moves on the section 3
+f3_enum = helper.Task.F3.value
+sys_info = f"I am building a {st.session_state.get('system_name', '__')} application. {st.session_state.get('system_description', '__')} {st.session_state.get('system_purpose', '__')} An user story is {st.session_state.get(f'us1_des', '').strip()}"
+if all_stakeholders != [] and f'{f3_enum}_task_status' not in st.session_state:
+    helper.send_req(st, sys_info, f3_enum, all_stakeholders)
+    print("sending request for f3")
 
 st.markdown(f"For each identified stakeholder (:orange[{', '.join(all_stakeholders)}]), consider the potential negative impacts and fairness issues that could arise from the system's deployment and use.")
 

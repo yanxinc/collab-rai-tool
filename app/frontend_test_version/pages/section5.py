@@ -11,7 +11,7 @@ st.subheader("Fairness Considerations")
 
 st.write("For the following Fairness Goal, \n1) Select the relevant stakeholder(s) (e.g., system user, person impacted by the system); \n2) Consider potential AI related harms and consequences that may arise from the system; and \n3) Describe your ideas for mitigations.")
 
-st.write("#### Goal F3: Minimization of stereotyping, demeaning, and erasing outputs")
+st.write("#### Goal: Minimization of stereotyping, demeaning, and erasing outputs")
 
 st.write(f"_This Goal applies to AI systems when system outputs include descriptions, depictions, or other representations of people, cultures, or society. Consider: {rai_guide.f3_guide}_")
 
@@ -59,12 +59,15 @@ st.write("After identifying potential harms, propose practical strategies to mit
 st.markdown("Examples of mitigation strategies for 'Minimization of stereotyping, demeaning, and erasing outputs' realted harms include developing a rigorous understanding of how different demographic groups are represented within the AI system and modifying the system to minimize harmful outputs.", help="For example, an image search system that predominantly returns images of men in response to the query “chief executive officer” may underrepresent non-male chief executive officers. To mitigate this, the system can be modified to provide more representative outputs.")
 st.session_state[f'goal_f3_3'] =  st.text_area("Describe your ideas for mitigations  ", value=st.session_state.get(f"goal_f3_3", ""))
 
-col1, col2 = st.columns([0.7,0.3])
-with col2:
-    if st.button('Next Page', use_container_width=True):
-        if 'goal_f3_2' in st.session_state and st.session_state['goal_f3_2'] != "" and 'goal_f3_3' in st.session_state and st.session_state['goal_f3_3'] != "":
-            st.switch_page("pages/section6.py")
-        else:
-            st.toast("Please complete the questions above")
+st.write(":red[END OF STUDY] - Thank for for participating!")
+
+
+# col1, col2 = st.columns([0.7,0.3])
+# with col2:
+#     if st.button('Next Page', use_container_width=True):
+#         if 'goal_f3_2' in st.session_state and st.session_state['goal_f3_2'] != "" and 'goal_f3_3' in st.session_state and st.session_state['goal_f3_3'] != "":
+#             st.switch_page("pages/section6.py")
+#         else:
+#             st.toast("Please complete the questions above")
 
 menu(st)

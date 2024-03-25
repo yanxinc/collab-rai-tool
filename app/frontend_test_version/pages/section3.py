@@ -18,13 +18,6 @@ st.markdown("_When considering this fairness goal, think about different demogra
 
 all_stakeholders = helper.get_stakeholders(st)
 
-# Start generating F3 scenarios as soon as stakeholders are filled & user moves on the section 3
-f3_enum = helper.Task.F3.value
-sys_info = f"I am building a {st.session_state.get('system_name', '__')} application. {st.session_state.get('system_description', '__')} {st.session_state.get('system_purpose', '__')} An user story is {st.session_state.get(f'us1_des', '').strip()}"
-if all_stakeholders != [] and f'{f3_enum}_task_status' not in st.session_state:
-    helper.send_req(st, sys_info, f3_enum, all_stakeholders)
-    print("sending request for f3")
-
 st.markdown(f"For each identified stakeholder (:orange[{', '.join(all_stakeholders)}]), consider the potential negative impacts and fairness issues that could arise from the system's deployment and use.")
 st.session_state[f'goal_f1_2'] =  st.text_area("Describe any potential harms ", value=st.session_state.get(f"goal_f1_2", ""))
 
