@@ -37,10 +37,10 @@ def stakeholder_section(st, sys_info, us_description, is_direct):
                         while True:
                             result = helper.poll_task_status(st, st.session_state[f'{sh_enum}_task_id'], sh_enum)
                             if result:
-                                result = result.replace("##### Direct Obvious Stakeholders", "##### Direct Stakeholders")\
-                                      .replace("##### Direct Surprising Stakeholders", "##### Other Direct Stakeholders")\
-                                      .replace("##### Indirect Obvious Stakeholders", "##### Indirect Stakeholders")\
-                                      .replace("##### Indirect Surprising Stakeholders", "##### Other Indirect Stakeholders")
+                                result = result.replace("Direct Obvious Stakeholders", "Direct Stakeholders")\
+                                      .replace("Direct Surprising Stakeholders", "Other Direct Stakeholders")\
+                                      .replace("Indirect Obvious Stakeholders", "Indirect Stakeholders")\
+                                      .replace("Indirect Surprising Stakeholders", "Other Indirect Stakeholders")
                                 with st.container(border=True):
                                     st.write(result)
                                 st.session_state[f"{sh_enum}_result"] = result
@@ -100,7 +100,7 @@ col1, col2 = st.columns([0.7,0.3])
 with col2:
     if st.button('Next Page', use_container_width=True):
         if len(all_stakeholders) > 0:
-            st.switch_page("pages/section3.py")
+            st.switch_page("pages/section4.py")
         else:
             st.toast("Please fill in the stakeholders")
 
