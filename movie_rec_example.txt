@@ -20,3 +20,7 @@ users (movie watchers) can request for personalized recommendations
 view a list of movies that users might be interested in
 
 # intended use 2 description:
+
+
+
+Context: Movie Recommendation System application - provides movie recommendations to users based on their watching history and ratings data. The system can receive recommendation requests and needs to reply with a list of recommended movies. The purpose of this system is to suggest movies to users to allow for better user experience. The users (movie watchers) would be able to receive more personalized recommendations. The AI / ML model uses collaborative filtering algorithms to accumulate and learn from users' past evaluations of movies to approximate ratings of unrated movies and then give recommendations based on these estimates. An user story is: As a movie watcher, I want to request for personalized recommendations based on my interest and previous watch history, so that I can discover new films that match my preferences and enhance my viewing experience.
