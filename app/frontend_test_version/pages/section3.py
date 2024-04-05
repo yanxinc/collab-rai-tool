@@ -6,24 +6,27 @@ import helper, rai_guide
 import streamlit as st
 from menu import menu
 
-st.subheader("Fairness Considerations")
+st.subheader("Fairness Considerations - Quality of service")
 
-st.write("For the following Fairness Goal, \n1) Select the relevant stakeholder(s) (e.g., system user, person impacted by the system); \n2) Consider potential AI related harms and consequences that may arise from the system; and \n3) Describe your ideas for mitigations.")
+st.write("In this section, consider potential AI related harms and consequences that may arise from the system and describe your ideas for mitigations")
 
-st.write("#### Goal F1: Quality of service")
+st.markdown(":closed_book: **Definition:** The <ins>Quality of Service</ins> fairness goal applies to AI systems when system users or people impacted by the system with different demographic characteristics might experience differences in quality of service that can be remedied by building the system differently.", unsafe_allow_html=True)
 
-st.write(f"_This Goal applies to AI systems when system users or people impacted by the system with different demographic characteristics might experience differences in quality of service that can be remedied by building the system differently. Consider: {rai_guide.f1_guide}_")
+st.write("#### Potential Harms")
 
-st.markdown("_When considering this fairness goal, think about different demographic group of stakeholders and consider marginalized groups._", help="**Demographic groups** can refer to any population group that shares one or more particular demographic characteristics. Depending on the AI system and context of deployment, the list of identified demographic groups will change.\n\n**Marginalized groups** are demographic groups who may have an atypical or even unfair experience with the system if their needs and context are not considered. May include minorities, stigmatized groups, or other particularly vulnerable groups. Additionally, marginalized groups can also include children, the elderly, indigenous peoples, and religious minorities. Groups to include for consideration will depend in part on the geographic areas and intended uses of your system.")
+st.markdown(f":grey_question: **Hint:** {rai_guide.f1_guide} Consider marginalized groups and think about different demographic group of stakeholders.", help="**Demographic groups** can refer to any population group that shares one or more particular demographic characteristics. Depending on the AI system and context of deployment, the list of identified demographic groups will change.\n\n**Marginalized groups** are demographic groups who may have an atypical or even unfair experience with the system if their needs and context are not considered. May include minorities, stigmatized groups, or other particularly vulnerable groups. Additionally, marginalized groups can also include children, the elderly, indigenous peoples, and religious minorities. Groups to include for consideration will depend in part on the geographic areas and intended uses of your system.")
 
 all_stakeholders = helper.get_stakeholders(st)
 
-st.markdown(f"For each identified stakeholder (:orange[{', '.join(all_stakeholders)}]), consider the potential negative impacts and fairness issues that could arise from the system's deployment and use.")
-st.session_state[f'goal_f1_2'] =  st.text_area("Describe any potential harms ", value=st.session_state.get(f"goal_f1_2", ""))
+st.session_state[f'goal_f1_2'] =  st.text_area(f":lower_left_ballpoint_pen: **Instruction:** :blue[Describe any potential harms]. For each identified stakeholder (:orange[{', '.join(all_stakeholders)}]) that are relevant, consider the potential negative impacts and fairness issues that could arise from the system's deployment and use. ", value=st.session_state.get(f"goal_f1_2", ""))
 
-st.write("After identifying potential harms, propose practical strategies to mitigate these issues. Consider both technical solutions and policy measures. Focus on actions that can be taken at various stages of your system's lifecycle to promote fairness. List the actions you might take to mitigate the potential harms and fairness issues you have identified.")
-st.markdown("Examples of mitigation strategies for 'Quality of Service' realted harms include evaluating the data sets and the system, then modifying the system to improve system performance for affected demographic groups while minimizing performance differences between identified demographic groups.", help="For example, people who speak language varieties that are underrepresented in the training data may experience worse quality of service for a voice transcription system. The system can be evaluated and modified to improve quality of service for these demographic groups.")
-st.session_state[f'goal_f1_3'] =  st.text_area("Describe your ideas for mitigations ", value=st.session_state.get(f"goal_f1_3", ""))
+st.write("#### Mitigations")
+
+st.write("After identifying potential harms, propose practical strategies to mitigate these issues.")
+
+st.markdown(":grey_question: **Hint:** Consider both technical solutions and policy measures. Focus on actions that can be taken at various stages of your system's lifecycle to promote fairness.", help="Examples of mitigation strategies for 'Quality of Service' realted harms include evaluating the data sets and the system, then modifying the system to improve system performance for affected demographic groups while minimizing performance differences between identified demographic groups.\n\n e.g. People who speak language varieties that are underrepresented in the training data may experience worse quality of service for a voice transcription system. The system can be evaluated and modified to improve quality of service for these demographic groups.")
+
+st.session_state[f'goal_f1_3'] =  st.text_area(":lower_left_ballpoint_pen: **Instruction:** :blue[Describe your ideas for mitigations]. List the actions you might take to mitigate the potential harms and fairness issues you have identified. ", value=st.session_state.get(f"goal_f1_3", ""))
 
 col1, col2 = st.columns([0.7,0.3])
 with col2:

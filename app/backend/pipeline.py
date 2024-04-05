@@ -7,11 +7,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import random
 from sentence_transformers import SentenceTransformer
 import os, sys
+import random
 app_dir = os.path.dirname(os.path.dirname(__file__))
 helpers_dir = os.path.join(app_dir, 'helpers')
 sys.path.append(helpers_dir)
 import rai_guide
 from cred import KEY 
+import requests
 
 gpt3 = "gpt-3.5-turbo"
 # gpt4 = "gpt-3.5-turbo"
@@ -63,21 +65,37 @@ demographic_groups_list = [
     "Religion"
 ]
 
+def chat(model, messages):
+    response = openai.ChatCompletion.create( 
+        model=model, 
+        messages=messages
+    )
+
+    return response['choices'][0]['message']['content']
+
+# def chat(_, messages):
+#     response = requests.post(f"http://localhost:11434/api/chat",json={
+#         "model": "mistral:7b-instruct-v0.2-q4_K_M", 
+#         "messages": messages,
+#         "stream": False
+#     })
+#     if response.status_code == 200:
+#         return response.json()['message']['content']
+#     else:
+#         print("Request failed")
+
 def get_direct_stakeholders(sys_info):
     messages = prompt + [{'role': 'user', 'content': sys_info}]
 
     messages.append({'role': 'user', 'content': 
                     f"{rai_guide.direct_stakeholder_def}\nIdentify the most relevant stakeholder(s) categorized into 'direct obvious' and 'direct surprising' stakeholders. Label the categories with h5 headings (i.e. '##### Direct Obvious Stakeholders' and '##### Direct Surprising Stakeholders')."})
 
-    response = openai.ChatCompletion.create( 
-        model=gpt4, 
-        messages=messages
-    )     
-
+    result = chat(gpt4, messages)
+      
     logging.info(f"======== Direct Stakeholders ========")
-    logging.info(response['choices'][0]['message']['content'])
+    logging.info(result)
 
-    return response['choices'][0]['message']['content']
+    return result
 
 def get_indirect_stakeholders(sys_info):
     messages = prompt + [{'role': 'user', 'content': sys_info}]
@@ -85,15 +103,12 @@ def get_indirect_stakeholders(sys_info):
     messages.append({'role': 'user', 'content': 
                     f"{rai_guide.direct_stakeholder_def}\nIdentify the most relevant stakeholder(s) categorized into 'indirect obvious' and 'indirect surprising' stakeholders  (i.e. '##### Inirect Obvious Stakeholders' and '##### Indirect Surprising Stakeholders')."})
 
-    response = openai.ChatCompletion.create( 
-        model=gpt4, 
-        messages=messages
-    )     
+    result = chat(gpt4, messages)    
 
     logging.info(f"======== Indirect Stakeholders ========")
-    logging.info(response['choices'][0]['message']['content'])
+    logging.info(result)
 
-    return response['choices'][0]['message']['content']
+    return result
 
 def get_stakeholders(sys_info):
     messages = prompt + [{'role': 'user', 'content': sys_info}]
@@ -101,15 +116,12 @@ def get_stakeholders(sys_info):
     messages.append({'role': 'user', 'content': 
                     f"{rai_guide.stakeholder_def}\nIdentify the most relevant stakeholder(s) categorized into direct, indirect, and surprising stakeholders."})
 
-    response = openai.ChatCompletion.create( 
-        model=gpt4, 
-        messages=messages
-    )     
+    response = chat(gpt4, messages)
 
     logging.info(f"======== Stakeholders ========")
-    logging.info(response['choices'][0]['message']['content'])
+    logging.info(response)
 
-    return response['choices'][0]['message']['content']
+    return response
 
 def get_scenarios(stakeholders, goal, sys_info):
     scenario_prompts = prompt + [{'role': 'user', 'content': sys_info}]
@@ -129,20 +141,15 @@ def get_scenarios(stakeholders, goal, sys_info):
 
         Format your response as a ordered list of '{{number}}. SCENARIO: {{SCENARIO}}'
         """}]
-        rsp = openai.ChatCompletion.create( 
-            model=gpt4, 
-            messages=p
-        )
+        
+        rsp = chat(gpt4, p)
         logging.info(f"======== Scenarios First Draft for stakeholder: {stakeholder} ========")
-        logging.info(rsp['choices'][0]['message']['content'])
-        p.append({'role': 'assistant', 'content': f"{rsp['choices'][0]['message']['content']}"})
+        logging.info(rsp)
+        p.append({'role': 'assistant', 'content': f"{rsp}"})
         p.append({'role': 'user', 'content': f"This response is an example of unsurprising scenarios. Do not respond with unsurprising scenarios. Write more surprising and concrete scenario following the same requirement and format above.Do not include any corrective measures or suggestions for the tool."})
-        rsp = openai.ChatCompletion.create( 
-            model=gpt4, 
-            messages=p
-        )
+        rsp = chat(gpt4, p)
 
-        return rsp['choices'][0]['message']['content']
+        return rsp
     
     def draft_without_demographic_groups(stakeholder):
         p = scenario_prompts + [{'role': 'user', 'content': f"""
@@ -159,20 +166,14 @@ def get_scenarios(stakeholders, goal, sys_info):
 
         Format your response as a ordered list of '{{number}}. SCENARIO: {{SCENARIO}}'
         """}]
-        rsp = openai.ChatCompletion.create( 
-            model=gpt4, 
-            messages=p
-        )
+        rsp = chat(gpt4, p)
         logging.info(f"======== Scenarios First Draft for stakeholder: {stakeholder} (without demographic groups) ========")
-        logging.info(rsp['choices'][0]['message']['content'])
-        p.append({'role': 'assistant', 'content': f"{rsp['choices'][0]['message']['content']}"})
+        logging.info(rsp)
+        p.append({'role': 'assistant', 'content': f"{rsp}"})
         p.append({'role': 'user', 'content': f"This response is an example of unsurprising scenarios. Do not respond with unsurprising scenarios. Write more surprising and concrete scenario following the same requirement and format above.Do not include any corrective measures or suggestions for the tool."})
-        rsp = openai.ChatCompletion.create( 
-            model=gpt4, 
-            messages=p
-        )
+        rsp = chat(gpt4, p)
 
-        return rsp['choices'][0]['message']['content']
+        return rsp
 
     scenarios = []
     with ThreadPoolExecutor(max_workers=6) as executor:
@@ -242,23 +243,18 @@ def revise_scenario(scenario, sys_info):
     try:
         i = 0
         while True:
-            rsp = openai.ChatCompletion.create( 
-                model=gpt4, 
-                messages= [
-                    {"role": "system", "content": "You are writing concrete scenarios from text generated by another LLM."},
-                    {"role": "user", "content": sys_info},
-                    {"role": "user", "content": f"{text}\nWrite a more concrete and detailed version of the above type of scenario. Definition of concreteness: {rai_guide.concrete_def}\nAlso, make the story more severe and contain more intense harm. Definition of severity: {rai_guide.severity_def}\nThen, shorten it to a paragraph. \nFormat your response as: Only output the shortened scenario."}
-                ]
-            )
-            v2 = rsp['choices'][0]['message']['content']
+            messages= [
+                {"role": "system", "content": "You are writing concrete scenarios from text generated by another LLM."},
+                {"role": "user", "content": sys_info},
+                {"role": "user", "content": f"{text}\nWrite a more concrete and detailed version of the above type of scenario. Definition of concreteness: {rai_guide.concrete_def}\nAlso, make the story more severe and contain more intense harm. Definition of severity: {rai_guide.severity_def}\nThen, shorten it to a paragraph. \nFormat your response as: Only output the shortened scenario."}
+            ]
+            v2 = chat(gpt4, messages)
             logging.info(f"Concrete Version -> {v2}")
 
-            rsp = openai.ChatCompletion.create( 
-                model=gpt3, 
-                messages=[{"role": "system", "content": "You are evaluating stories generated by another LLM."},
-                        {"role": "user", "content": f"{v2}\nDoes the text above sound like a concrete story? \n{rai_guide.concrete_def}\nRespond with either YES or NO."}]
-            )
-            is_story = rsp['choices'][0]['message']['content']
+            rsp = chat(gpt3, [{"role": "system", "content": "You are evaluating stories generated by another LLM."},
+                        {"role": "user", "content": f"{v2}\nDoes the text above sound like a concrete story? \n{rai_guide.concrete_def}\nRespond with either YES or NO."}])
+
+            is_story = rsp
             logging.info(f"Is Story? -> {is_story}")
 
             if "YES" in is_story or i > 3: return v2
@@ -276,29 +272,26 @@ def select_final_scenarios(revised_scenarios, goal):
 
     s1,s2 = pick_scenario(sentences, goal)
     logging.info(f"chosen scenarios: {s1}, {s2}")
-    return sentences[s1], sentences[s2]
+    unpicked_scenarios = [s for i, s in enumerate(sentences) if i not in (s1, s2)]
+
+    return [sentences[s1], sentences[s2]], unpicked_scenarios
 
 def generate_heading(scenario):
     try:
-        rsp = openai.ChatCompletion.create( 
-            model=gpt3, 
-            messages=[{"role": "system", "content": "You are an intelligent writing assistant."},
-                        {"role": "user", "content": f"{scenario}\nsummarize the above story into an one sentence heading"}]
-        )
-        return rsp['choices'][0]['message']['content']
+        rsp = chat(gpt4, [{"role": "system", "content": "You are an intelligent writing assistant."},
+                        {"role": "user", "content": f"{scenario}\nsummarize the above story into an one sentence heading. In the end, identify which stakeholder is involved in the scenario. Format your response as: '{{heading}} (Stakeholder:{{stakeholder}})'"}])
+        return rsp
     except Exception as e:
         print(str(e))
         return "Error"
 
 
 def pick_scenario(cluster, goal):
-    rsp = openai.ChatCompletion.create( 
-            model=gpt4, 
-            messages=[{"role": "system", "content": "You are evaluating stories generated by another LLM."},
+    messages=[{"role": "system", "content": "You are evaluating stories generated by another LLM."},
                     {"role": "user", "content": f"""
     {cluster}
 
-    For the scenarios above, please select two diverse scenarios that are the most severe, surprising, concrete, and relevant to the scenario.
+For the scenarios above, please select two diverse scenarios that are the most severe, surprising, concrete, and relevant to the scenario.
 
 The qualities are defined as:
 {rai_guide.severity_def}
@@ -307,11 +300,20 @@ The qualities are defined as:
 {rai_guide.relevant_def + fariness_goals[goal]['concern']}
 {rai_guide.diversity_def}
 
-Respond strictly with only the numbers of the scenario, separated with a comma. 
-    """}])
+Respond strictly with only the numbers of the scenario, separated with a comma."""}]
+    rsp = chat(gpt4, messages)
 
-    s1,s2 = rsp['choices'][0]['message']['content'].split(',')
-    return int(re.sub(r'\D', '', s1)), int(re.sub(r'\D', '', s2))
+    try:
+        s1,s2 = rsp.split(',')[:2]
+        s1,s2 = int(re.sub(r'\D', '', s1)), int(re.sub(r'\D', '', s2))
+        if 0 <= s1 < len(cluster) and 0 <= s2 < len(cluster):
+            return s1, s2
+        return 
+    except:
+        print("Pick scenario index error")
+
+    random_integers = random.sample(range(0, len(cluster)+1), 2)
+    return random_integers[0], random_integers[1]
 
 def duration(diff):
     return time.strftime("%H:%M:%S", time.gmtime(diff))
@@ -319,18 +321,14 @@ def duration(diff):
 def remove_correctives(picked_scenarios):
     res = []
     for s in picked_scenarios:
-        rsp = openai.ChatCompletion.create( 
-            model=gpt4, 
-            messages=[{"role": "system", "content": "You are revising stories generated by another LLM."},
+        rsp = chat(gpt4, [{"role": "system", "content": "You are revising stories generated by another LLM."},
                     {"role": "user", "content": f"{s}\n Remove any corrective measures or suggestions for the tool."}])
-        res.append(rsp['choices'][0]['message']['content'])
+        res.append(rsp)
     return res
 
 def stakeholder_list_helper(stakeholders):
-    rsp = openai.ChatCompletion.create( 
-        model=gpt4, 
-        messages=[{"role": "user", "content": f"Convert the below text into a list of stakeholder. Format: string of comma seperated list. Example: user1,user2,...\nText:{stakeholders}"}])
-    return (rsp['choices'][0]['message']['content']).split(",")
+    rsp = chat(gpt4, [{"role": "user", "content": f"Convert the below text into a list of stakeholder. Format: string of comma seperated list. Example: user1,user2,...\nText:{stakeholders}"}])
+    return rsp.split(",")
 
 def log_helper(message, start_time):
     print(f"{message} - {duration(time.time() - start_time)}")
@@ -370,19 +368,30 @@ def generate_scenarios(sys_info, goal, given_stakeholders=None):
 
     # Step 5: Pick Final Scenario
     start = time.time()
-    picked_scenarios = select_final_scenarios(scenarios, goal)
+    picked_scenarios, unpicked_scenarios = select_final_scenarios(scenarios, goal)
     final_scenarios = remove_correctives(picked_scenarios)
     logging.critical(f"==== Final Scenarios -  {duration(time.time() - start)}: ====")
 
+#     results = []
+#     for i in range(len(final_scenarios)):
+#         tmp = f"""
+# ### Scenario {i}: {generate_heading(final_scenarios[i])}\n
+# {final_scenarios[i]}
+# """
+#         logging.critical(tmp)
+#         results.append(tmp)
+    
+#     return results
+
     result = f"""
-### Scenario 1: {generate_heading(final_scenarios[0])}\n
-{final_scenarios[0]}
-### Scenario 2: {generate_heading(final_scenarios[1])}\n
+**Scenario 1: {generate_heading(final_scenarios[0])}**\n
+{final_scenarios[0]}\n\n
+**Scenario 2: {generate_heading(final_scenarios[1])}**\n
 {final_scenarios[1]}"""
     print(result)
     logging.critical(result)
 
-    return result
+    return result, unpicked_scenarios
 
 contexts = [
     {
@@ -406,7 +415,7 @@ contexts = [
 #     start = time.time()
 
 #     # generate_scenarios(None, context['sys_info'], 'f2', None)
-#     generate_scenarios(context['sys_info'], 'f2', context['given_stakeholders'])
+#     generate_scenarios(context['sys_info'], 'f3', context['given_stakeholders'])
 
 #     print(f"Duration: {duration(time.time() - start)}")
 
