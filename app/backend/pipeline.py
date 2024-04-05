@@ -92,7 +92,7 @@ def get_direct_stakeholders(sys_info):
 
     result = chat(gpt4, messages)
       
-    logging.info(f"======== Direct Stakeholders ========")
+    logging.critical(f"======== Direct Stakeholders Generated ========")
     logging.info(result)
 
     return result
@@ -105,7 +105,7 @@ def get_indirect_stakeholders(sys_info):
 
     result = chat(gpt4, messages)    
 
-    logging.info(f"======== Indirect Stakeholders ========")
+    logging.critical(f"======== Indirect Stakeholders Generated ========")
     logging.info(result)
 
     return result
@@ -337,8 +337,8 @@ def log_helper(message, start_time):
 def generate_scenarios(sys_info, goal, given_stakeholders=None):
     if goal not in ['f1', 'f2', 'f3']: return "Invalid Goal"
 
-    logging.info(f"==== Generating scenarios for the following scenario: ====")
-    logging.info(sys_info)
+    logging.critical(f"==== Generating scenarios for the following scenario: ====")
+    logging.critical(sys_info)
 
     # Step 1: Generate Stakeholders
     start = time.time()
