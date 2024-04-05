@@ -26,7 +26,7 @@ prompt = [ {"role": "system", "content": "You are an advanced AI Language Model 
 model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1")
 
 logging.basicConfig(
-    level=logging.INFO, 
+    level=logging.CRITICAL, 
     format='%(asctime)s - %(levelname)s - %(message)s',
     filename='results.log',
     filemode='a'
@@ -332,7 +332,7 @@ def stakeholder_list_helper(stakeholders):
 
 def log_helper(message, start_time):
     print(f"{message} - {duration(time.time() - start_time)}")
-    logging.info(f"{message} - {duration(time.time() - start_time)}")
+    logging.critical(f"{message} - {duration(time.time() - start_time)}")
 
 def generate_scenarios(sys_info, goal, given_stakeholders=None):
     if goal not in ['f1', 'f2', 'f3']: return "Invalid Goal"
@@ -370,18 +370,7 @@ def generate_scenarios(sys_info, goal, given_stakeholders=None):
     start = time.time()
     picked_scenarios, unpicked_scenarios = select_final_scenarios(scenarios, goal)
     final_scenarios = remove_correctives(picked_scenarios)
-    logging.critical(f"==== Final Scenarios -  {duration(time.time() - start)}: ====")
-
-#     results = []
-#     for i in range(len(final_scenarios)):
-#         tmp = f"""
-# ### Scenario {i}: {generate_heading(final_scenarios[i])}\n
-# {final_scenarios[i]}
-# """
-#         logging.critical(tmp)
-#         results.append(tmp)
-    
-#     return results
+    logging.critical(f"==== Final Scenarios - {duration(time.time() - start)}: ====")
 
     result = f"""
 **Scenario 1: {generate_heading(final_scenarios[0])}**\n
