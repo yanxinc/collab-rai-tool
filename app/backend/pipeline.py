@@ -370,7 +370,7 @@ def generate_scenarios(sys_info, goal, given_stakeholders=None):
     start = time.time()
     picked_scenarios, unpicked_scenarios = select_final_scenarios(scenarios, goal)
     final_scenarios = remove_correctives(picked_scenarios)
-    logging.critical(f"==== Final Scenarios - {duration(time.time() - start)}: ====")
+    logging.critical(f"==== Final Scenarios - {duration(time.time() - start)} ====")
 
     result = f"""
 **Scenario 1: {generate_heading(final_scenarios[0])}**\n

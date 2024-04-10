@@ -8,11 +8,13 @@ import rai_guide
 import streamlit as st
 from menu import menu
 
-def stakeholder_section(st, sys_info, us_description, is_direct):
+st.set_page_config(layout="centered",initial_sidebar_state="collapsed")
+
+def stakeholder_section(st, sys_info, is_direct):
     sh_type = "direct" if is_direct else "indirect"
     sh_enum = helper.Task.DIRECT_SH.value if is_direct else helper.Task.INDIRECT_SH.value
 
-    if us_description != '' and f'{sh_enum}_task_status' not in st.session_state:
+    if sys_info != '' and f'{sh_enum}_task_status' not in st.session_state:
         helper.send_req(st, sys_info, sh_enum)
 
     st.subheader(f"{sh_type.capitalize()} Stakeholders") 
@@ -28,7 +30,7 @@ def stakeholder_section(st, sys_info, us_description, is_direct):
             st.write(st.session_state[f'{sh_enum}_result'])
 
     if stakeholder_button:
-        if us_description != '':
+        if sys_info != '':
             st.session_state[f'{sh_enum}_clicked'] = True
             if f'{sh_enum}_task_status' in st.session_state:
                 if st.session_state[f'{sh_enum}_task_status'] == 'Running':
@@ -83,12 +85,14 @@ def stakeholder_section(st, sys_info, us_description, is_direct):
 
 st.header(f"Section 2: Stakeholders Identification")
 
-us_description = st.session_state.get(f'us1_des', "").strip()
-sys_info = f"I am building a {st.session_state.get('system_name', '__')} application. {st.session_state.get('system_description', '__')} {st.session_state.get('system_purpose', '__')} An user story is {us_description}"
+if 'all_system_info' in st.session_state and st.session_state['all_system_info'] != "":
+    sys_info = st.session_state['all_system_info']
+else:
+    sys_info = f"I am building the following AI application. {st.session_state.get('system_description', '__')} {st.session_state.get('system_purpose', '__')} An user story is {st.session_state.get(f'us1_des', '').strip()}"
 
 st.write("In this section, identify the system's stakeholders for your system. Think broadly about the people impacted directly and indirectly.")
-stakeholder_section(st, sys_info, us_description, True)
-stakeholder_section(st, sys_info, us_description, False)
+stakeholder_section(st, sys_info, True)
+stakeholder_section(st, sys_info, False)
         
 all_stakeholders = helper.get_stakeholders(st)
 st.session_state['can_display_fairness_sections'] = len(all_stakeholders) > 0

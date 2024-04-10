@@ -15,13 +15,17 @@ st.markdown(":closed_book: **Definition:** The <ins>Allocation of resources and 
 
 st.write("#### Potential Harms")
 
-st.markdown(f":grey_question: **Hint:** {rai_guide.f2_guide} Consider marginalized groups and think about different demographic group of stakeholders.", help="**Demographic groups** can refer to any population group that shares one or more particular demographic characteristics. Depending on the AI system and context of deployment, the list of identified demographic groups will change.\n\n**Marginalized groups** are demographic groups who may have an atypical or even unfair experience with the system if their needs and context are not considered. May include minorities, stigmatized groups, or other particularly vulnerable groups. Additionally, marginalized groups can also include children, the elderly, indigenous peoples, and religious minorities. Groups to include for consideration will depend in part on the geographic areas and intended uses of your system.")
+helper.potential_harms_hint(st, rai_guide.f2_guide)
 
 all_stakeholders = helper.get_stakeholders(st)
 
 # Start generating F3 scenarios as soon as stakeholders are filled & user moves on the section 3
 f3_enum = helper.Task.F3.value
-sys_info = f"I am building a {st.session_state.get('system_name', '__')} application. {st.session_state.get('system_description', '__')} {st.session_state.get('system_purpose', '__')} An user story is {st.session_state.get(f'us1_des', '').strip()}"
+if 'all_system_info' in st.session_state and st.session_state['all_system_info'] != "":
+    sys_info = st.session_state['all_system_info']
+else:
+    sys_info = f"I am building the following AI application. {st.session_state.get('system_description', '__')} {st.session_state.get('system_purpose', '__')} An user story is {st.session_state.get(f'us1_des', '').strip()}"
+
 if all_stakeholders != [] and f'{f3_enum}_task_status' not in st.session_state:
     helper.send_req(st, sys_info, f3_enum, all_stakeholders)
     print("sending request for f3")

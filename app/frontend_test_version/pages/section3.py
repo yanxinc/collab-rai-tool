@@ -14,7 +14,7 @@ st.markdown(":closed_book: **Definition:** The <ins>Quality of Service</ins> fai
 
 st.write("#### Potential Harms")
 
-st.markdown(f":grey_question: **Hint:** {rai_guide.f1_guide} Consider marginalized groups and think about different demographic group of stakeholders.", help="**Demographic groups** can refer to any population group that shares one or more particular demographic characteristics. Depending on the AI system and context of deployment, the list of identified demographic groups will change.\n\n**Marginalized groups** are demographic groups who may have an atypical or even unfair experience with the system if their needs and context are not considered. May include minorities, stigmatized groups, or other particularly vulnerable groups. Additionally, marginalized groups can also include children, the elderly, indigenous peoples, and religious minorities. Groups to include for consideration will depend in part on the geographic areas and intended uses of your system.")
+helper.potential_harms_hint(st, rai_guide.f1_guide)
 
 all_stakeholders = helper.get_stakeholders(st)
 

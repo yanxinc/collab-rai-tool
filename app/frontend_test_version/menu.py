@@ -12,7 +12,7 @@ def menu(st):
 
     st.sidebar.page_link("pages/section1.py", label="Section 1: System Information")
 
-    display_stakeholder = 'us1_des' in st.session_state and st.session_state['us1_des'] != ""
+    display_stakeholder = ('us1_des' in st.session_state and st.session_state['us1_des'] != "") or ('all_system_info' in st.session_state and st.session_state['all_system_info'] != "")
     st.sidebar.page_link("pages/section2.py", label="Section 2: Stakeholders Identification", disabled=not display_stakeholder),
 
     if 'can_display_fairness_sections' not in st.session_state: st.session_state['can_display_fairness_sections'] = False
