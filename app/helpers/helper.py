@@ -12,8 +12,13 @@ class Task(Enum):
 
 backend_url = os.getenv('BACKEND_URL', "http://0.0.0.0:8502")
 
+def format_scenario_result(scenario, i):
+    return f"""
+**Scenario {i+1}: {scenario[0]}**\n
+{scenario[1]}\n\n
+"""
 
-def more_stakeholers(st,task_id,task_type):
+def more_scenarios(st,task_id,task_type):
     response = requests.get(f"{backend_url}/get-more-scenarios/{task_id}")
     if response.status_code == 200:
         result = response.json()

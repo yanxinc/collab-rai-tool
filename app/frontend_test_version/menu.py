@@ -7,6 +7,11 @@ def menu(st):
         background-color: #fbfaf5;
         color: black;
     } 
+    .st-emotion-cache-l9bjmx p {
+        word-break: break-word;
+        margin-bottom: 0px;
+        font-size: 1rem;
+    }
     </style>
 """, unsafe_allow_html=True)
 

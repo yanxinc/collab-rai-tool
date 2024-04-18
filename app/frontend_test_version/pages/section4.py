@@ -30,7 +30,7 @@ if all_stakeholders != [] and f'{f3_enum}_task_status' not in st.session_state:
     helper.send_req(st, sys_info, f3_enum, all_stakeholders)
     print("sending request for f3")
 
-st.session_state[f'goal_f2_2'] =  st.text_area(f":lower_left_ballpoint_pen: **Instruction:** :blue[Describe any potential harms]. For each identified stakeholder (:orange[{', '.join(all_stakeholders)}]) that are relevant, consider the potential negative impacts and fairness issues that could arise from the system's deployment and use.", value=st.session_state.get(f"goal_f2_2", ""))
+st.session_state[f'goal_f2_2'] =  st.text_area(f":lower_left_ballpoint_pen: **Instruction: Describe any potential harms**. For each identified stakeholder (:orange[{', '.join(all_stakeholders)}]) that are relevant, consider the potential negative impacts and fairness issues that could arise from the system's deployment and use.", value=st.session_state.get(f"goal_f2_2", ""))
 
 st.write("#### Mitigations")
 
@@ -38,7 +38,7 @@ st.write("After identifying potential harms, propose practical strategies to mit
 
 st.markdown(":grey_question: **Hint:** Consider both technical solutions and policy measures. Focus on actions that can be taken at various stages of your system's lifecycle to promote fairness.", help="Examples of mitigation strategies for 'Allocation of resources and opportunities' realted harms include evaluating the data sets and the system then modifying the system to minimize differences in the allocation of resources and opportunities between identified demographic groups.\n\n e.g. A hiring system that scans resumes and recommends candidates for hiring trained on historical data tends to be biased toward male candidates. The system can be evaluated and modified to reduce unfair allocation of opportunities.")
 
-st.session_state[f'goal_f2_3'] =  st.text_area(":lower_left_ballpoint_pen: **Instruction:** :blue[Describe your ideas for mitigations]. List the actions you might take to mitigate the potential harms and fairness issues you have identified.", value=st.session_state.get(f"goal_f2_3", ""))
+st.session_state[f'goal_f2_3'] =  st.text_area(":lower_left_ballpoint_pen: **Instruction: Describe your ideas for mitigations**. List the actions you might take to mitigate the potential harms and fairness issues you have identified.", value=st.session_state.get(f"goal_f2_3", ""))
 
 col1, col2 = st.columns([0.7,0.3])
 with col2:

@@ -5,7 +5,7 @@ import uuid
 import pipeline
 from pydantic import BaseModel
 from typing import List,Optional
-import os, sys
+import os, sys, re
 app_dir = os.path.dirname(__file__)
 helpers_dir = os.path.join(app_dir, 'helpers')
 sys.path.append(helpers_dir)
@@ -20,17 +20,13 @@ class Data(BaseModel):
 app = FastAPI()
 results = {}
 
-def process_unpicked_scenarios(unpicked):
+def process_unpicked_scenarios(unpicked, stakeholders):
     final_scenarios = pipeline.remove_correctives(unpicked)
 
-    result = ""
-    for i in range(len(final_scenarios)):
-        tmp = f"""
-**Scenario {i+3}: {pipeline.generate_heading(final_scenarios[i])}**\n
-{final_scenarios[i]}\n\n
-"""
-        result = result + tmp
-    return result
+    scenario_heading_list = [
+        (pipeline.generate_heading(scenario, stakeholders), re.sub(r'^\d+\.\s*', '', scenario.strip()).strip()) for scenario in final_scenarios
+    ]
+    return scenario_heading_list
 
 def background_task(data: Data, task_id: str, task: Task):
     sys_info = data.sys_info
@@ -52,7 +48,7 @@ def background_task(data: Data, task_id: str, task: Task):
             results[task_id] = picked
             print("F1 Scenarios Generated")
 
-            results[task_id + "_unpicked"] = process_unpicked_scenarios(unpicked)
+            results[task_id + "_unpicked"] = process_unpicked_scenarios(unpicked,data.stakeholders)
         case Task.F2:
             print("Start Generating F2 Scenarios...")
             print(data.stakeholders)
@@ -61,7 +57,7 @@ def background_task(data: Data, task_id: str, task: Task):
             results[task_id] = picked
             print("F2 Scenarios Generated")
 
-            results[task_id + "_unpicked"] = process_unpicked_scenarios(unpicked)
+            results[task_id + "_unpicked"] = process_unpicked_scenarios(unpicked,data.stakeholders)
         case Task.F3:
             print("Start Generating F3 Scenarios...")
             print(data.stakeholders)
@@ -70,7 +66,7 @@ def background_task(data: Data, task_id: str, task: Task):
             results[task_id] = picked
             print("F3 Scenarios Generated")
 
-            results[task_id + "_unpicked"] = process_unpicked_scenarios(unpicked)
+            results[task_id + "_unpicked"] = process_unpicked_scenarios(unpicked,data.stakeholders)
 
 @app.post("/pipeline-req/")
 async def run_task(data: Data, background_tasks: BackgroundTasks):

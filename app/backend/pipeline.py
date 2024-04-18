@@ -176,7 +176,7 @@ def get_scenarios(stakeholders, goal, sys_info):
         return rsp
 
     scenarios = []
-    with ThreadPoolExecutor(max_workers=6) as executor:
+    with ThreadPoolExecutor(max_workers=20) as executor:
         futures = []
         for stakeholder in stakeholders:
             futures.append(executor.submit(draft_scenario, stakeholder))
@@ -276,10 +276,10 @@ def select_final_scenarios(revised_scenarios, goal):
 
     return [sentences[s1], sentences[s2]], unpicked_scenarios
 
-def generate_heading(scenario):
+def generate_heading(scenario, stakeholders):
     try:
         rsp = chat(gpt4, [{"role": "system", "content": "You are an intelligent writing assistant."},
-                        {"role": "user", "content": f"{scenario}\nsummarize the above story into an one sentence heading. In the end, identify which stakeholder is involved in the scenario. Format your response as: '{{heading}} (Stakeholder:{{stakeholder}})'"}])
+                        {"role": "user", "content": f"{scenario}\nsummarize the above story into an one sentence heading. In the end, identify which stakeholder is involved in the scenario. Pick the stakeholder from the following list: {stakeholders}\nFormat your response as: '{{heading}} (Stakeholder:{{stakeholder}})'"}])
         return rsp
     except Exception as e:
         print(str(e))
@@ -372,15 +372,14 @@ def generate_scenarios(sys_info, goal, given_stakeholders=None):
     final_scenarios = remove_correctives(picked_scenarios)
     logging.critical(f"==== Final Scenarios - {duration(time.time() - start)} ====")
 
-    result = f"""
-**Scenario 1: {generate_heading(final_scenarios[0])}**\n
-{final_scenarios[0]}\n\n
-**Scenario 2: {generate_heading(final_scenarios[1])}**\n
-{final_scenarios[1]}"""
-    print(result)
-    logging.critical(result)
+    scenario_heading_list = [
+        (generate_heading(scenario, stakeholders), re.sub(r'^\d+\.\s*', '', scenario.strip()).strip()) for scenario in final_scenarios
+    ]
+    # result = format_scenario_result(scenario_heading_list)
+    print(scenario_heading_list)
+    logging.critical(scenario_heading_list)
 
-    return result, unpicked_scenarios
+    return scenario_heading_list, unpicked_scenarios
 
 contexts = [
     {
