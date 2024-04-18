@@ -92,9 +92,12 @@ async def get_more_scenarios(task_id: str):
 @app.get("/logs")
 def logs():
     html_content = "<html><body><pre>"
+    html_content+= "<h1>Logs</h1>"
+    html_content+= "<h4>Note: The logs are displayed in reverse line order</h4>"
     with open('results.log', 'r') as file:
-        for line in file:
-            html_content += f"{line}<br>"
+        lines = file.readlines()
+        for line in reversed(lines):
+            html_content += f"{line.strip()}<br>"
     html_content += "</pre></body></html>"
     return HTMLResponse(content=html_content)
 
