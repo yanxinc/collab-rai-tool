@@ -1,5 +1,10 @@
 import streamlit as st
 from menu import menu
+import os, sys
+app_dir = os.path.dirname(os.path.dirname(__file__))
+helpers_dir = os.path.join(app_dir, 'helpers')
+sys.path.append(helpers_dir)
+import helper
 
 def main():
     st.title(f"Responsible AI Impact Assessment (User Testing Version)")
@@ -23,6 +28,8 @@ def main():
     _, col2 = st.columns([0.7,0.3])
     with col2:
         if st.button('Begin Study', use_container_width=True):
+            st.session_state['study_started'] = True
+            helper.start_study()
             st.switch_page("pages/section1.py")
 
     menu(st)

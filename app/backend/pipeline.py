@@ -331,9 +331,12 @@ def stakeholder_list_helper(stakeholders):
     rsp = chat(gpt4, [{"role": "user", "content": f"Convert the below text into a list of stakeholder. Format: string of comma seperated list. Example: user1,user2,...\nText:{stakeholders}"}])
     return rsp.split(",")
 
-def log_helper(message, start_time):
-    print(f"{message} - {duration(time.time() - start_time)}")
-    logging.critical(f"{message} - {duration(time.time() - start_time)}")
+def log_helper(message, start_time=None):
+    if start_time:
+        print(f"{message} - {duration(time.time() - start_time)}")
+        logging.critical(f"{message} - {duration(time.time() - start_time)}")
+    else:
+        logging.critical(f"{message}")
 
 def generate_scenarios(sys_info, goal, given_stakeholders=None):
     if goal not in ['f1', 'f2', 'f3']: return "Invalid Goal"

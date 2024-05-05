@@ -35,6 +35,9 @@ def send_req(st, sys_info, task_type, stakeholders=None):
     else:
         st.error("Failed to start background task")
 
+def start_study():
+    requests.get(f"{backend_url}/start-study")
+
 # Polling mechanism
 def poll_task_status(st,task_id, task_type):
     response = requests.get(f'{backend_url}/get-result/{task_id}')
