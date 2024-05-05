@@ -17,7 +17,7 @@ def write_scenarios(f_enum):
             st.write(helper.format_scenario_result(scenario_heading_list[i], i))
             
         with c2:
-            streamlit_feedback(feedback_type="thumbs", key=f's{i}_thumbs')
+            streamlit_feedback(feedback_type="thumbs", key=f's{i}_thumbs', optional_text_label="")
 
 st.subheader("Fairness Considerations - Minimization of stereotyping, demeaning, and erasing outputs")
 
@@ -42,7 +42,7 @@ if all_stakeholders != [] and f'{f_enum}_task_status' not in st.session_state:
     helper.send_req(st, sys_info, f_enum, all_stakeholders)
     print("sending request for f3")
 
-f3_brainstorm = st.button("Help me brainstorm scenarios concerning Minimization of stereotyping, demeaning, and erasing outputs", use_container_width=True)
+f3_brainstorm = st.button("Help me brainstorm scenarios concerning Minimization of stereotyping, demeaning, and erasing outputs", use_container_width=True, type='primary')
 
 if f'f3_clicked' in st.session_state and f'{f_enum}_result' in st.session_state:
     with st.container(border=True):

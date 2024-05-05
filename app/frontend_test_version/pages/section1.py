@@ -1,7 +1,7 @@
 import streamlit as st
 from menu import menu
 
-st.set_page_config(layout="centered",initial_sidebar_state="collapsed")
+# st.set_page_config(layout="centered",initial_sidebar_state="collapsed")
 
 st.header("Section 1: System Information")
 
@@ -20,7 +20,7 @@ with st.expander("If you already have all your system information, you can paste
             else:
                 st.toast("Please fill in your system information first")
 
-st.session_state['system_description'] = st.text_area("**System description:** Please provide a brief overview of the system you are building. Describe in simple terms and try to avoid jargon or technical terms.", value=st.session_state.get("system_description", ""), help="Consider: \n- What are you building? \n- What does it do? \n - How does it work?")
+st.session_state['system_description'] = st.text_area("**System description:** Please provide a brief overview of the system you are building in 2-3 sentences. Describe in simple terms and try to avoid jargon or technical terms.", value=st.session_state.get("system_description", ""), help="Consider: \n- What are you building? \n- What does it do? \n - How does it work?")
 
 st.session_state['system_purpose'] = st.text_area("""**System purpose:** Please briefly describe the purpose of the system and system features, focusing on how the system will address the needs of the people who use it. Explain how the AI technology contributes to achieving these objectives""", value=st.session_state.get("system_purpose", ""), help="Focus on the why.\nThis statement should include:\n1. the end user or primary customer of the system,\n2. how they complete this task today, or their current situation,\n3. the value that the system is intended to deliver,\n4. how it improves on today's situation.")
 

@@ -8,7 +8,7 @@ import rai_guide
 import streamlit as st
 from menu import menu
 
-st.set_page_config(layout="centered",initial_sidebar_state="collapsed")
+# st.set_page_config(layout="centered",initial_sidebar_state="collapsed")
 
 def stakeholder_section(st, sys_info, is_direct):
     sh_type = "direct" if is_direct else "indirect"
@@ -23,7 +23,7 @@ def stakeholder_section(st, sys_info, is_direct):
     else:
         st.markdown(f":closed_book: **Definition**: {rai_guide.indirect_stakeholder_def}",unsafe_allow_html=True)
 
-    stakeholder_button = st.button(f"Help me brainstorm potential {sh_type} stakeholders",use_container_width=True)
+    stakeholder_button = st.button(f"Help me brainstorm potential {sh_type} stakeholders",use_container_width=True, type='primary')
 
     if f'{sh_enum}_clicked' in st.session_state and f'{sh_enum}_result' in st.session_state:
         with st.container(border=True):

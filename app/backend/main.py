@@ -20,11 +20,11 @@ class Data(BaseModel):
 app = FastAPI()
 results = {}
 
-def process_unpicked_scenarios(unpicked, stakeholders):
+def process_unpicked_scenarios(unpicked):
     final_scenarios = pipeline.remove_correctives(unpicked)
 
     scenario_heading_list = [
-        (pipeline.generate_heading(scenario, stakeholders), re.sub(r'^\d+\.\s*', '', scenario.strip()).strip()) for scenario in final_scenarios
+        (pipeline.generate_heading(scenario) + f"(Stakeholder: {stakeholder})", re.sub(r'^\d+\.\s*', '', scenario.strip()).strip()) for (scenario, stakeholder) in final_scenarios
     ]
     return scenario_heading_list
 
@@ -48,7 +48,7 @@ def background_task(data: Data, task_id: str, task: Task):
             results[task_id] = picked
             print("F1 Scenarios Generated")
 
-            results[task_id + "_unpicked"] = process_unpicked_scenarios(unpicked,data.stakeholders)
+            results[task_id + "_unpicked"] = process_unpicked_scenarios(unpicked)
         case Task.F2:
             print("Start Generating F2 Scenarios...")
             print(data.stakeholders)
@@ -57,7 +57,7 @@ def background_task(data: Data, task_id: str, task: Task):
             results[task_id] = picked
             print("F2 Scenarios Generated")
 
-            results[task_id + "_unpicked"] = process_unpicked_scenarios(unpicked,data.stakeholders)
+            results[task_id + "_unpicked"] = process_unpicked_scenarios(unpicked)
         case Task.F3:
             print("Start Generating F3 Scenarios...")
             print(data.stakeholders)
@@ -66,7 +66,7 @@ def background_task(data: Data, task_id: str, task: Task):
             results[task_id] = picked
             print("F3 Scenarios Generated")
 
-            results[task_id + "_unpicked"] = process_unpicked_scenarios(unpicked,data.stakeholders)
+            results[task_id + "_unpicked"] = process_unpicked_scenarios(unpicked)
 
 @app.post("/pipeline-req/")
 async def run_task(data: Data, background_tasks: BackgroundTasks):
