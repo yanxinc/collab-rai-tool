@@ -16,6 +16,7 @@ class Data(BaseModel):
     sys_info: str
     task: int
     stakeholders: Optional[List[str]] = None
+    feedback: Optional[str] = None
 
 app = FastAPI()
 results = {}
@@ -24,7 +25,7 @@ def process_unpicked_scenarios(unpicked):
     final_scenarios = pipeline.remove_correctives(unpicked)
 
     scenario_heading_list = [
-        (pipeline.generate_heading(scenario) + f"(Stakeholder: {stakeholder})", re.sub(r'^\d+\.\s*', '', scenario.strip()).strip()) for (scenario, stakeholder) in final_scenarios
+        (pipeline.generate_heading(scenario) + f" (Stakeholder: {stakeholder})", re.sub(r'^\d+\.\s*', '', scenario.strip()).strip()) for (scenario, stakeholder) in final_scenarios
     ]
     return scenario_heading_list
 
@@ -44,7 +45,7 @@ def background_task(data: Data, task_id: str, task: Task):
             print("Start Generating F1 Scenarios...")
             print(data.stakeholders)
 
-            picked, unpicked = pipeline.generate_scenarios(sys_info, 'f1', data.stakeholders)
+            picked, unpicked = pipeline.generate_scenarios(sys_info, 'f1', data.stakeholders, data.feedback)
             results[task_id] = picked
             print("F1 Scenarios Generated")
 
@@ -53,7 +54,7 @@ def background_task(data: Data, task_id: str, task: Task):
             print("Start Generating F2 Scenarios...")
             print(data.stakeholders)
 
-            picked, unpicked = pipeline.generate_scenarios(sys_info, 'f2', data.stakeholders)
+            picked, unpicked = pipeline.generate_scenarios(sys_info, 'f2', data.stakeholders, data.feedback)
             results[task_id] = picked
             print("F2 Scenarios Generated")
 
@@ -62,7 +63,7 @@ def background_task(data: Data, task_id: str, task: Task):
             print("Start Generating F3 Scenarios...")
             print(data.stakeholders)
 
-            picked, unpicked = pipeline.generate_scenarios(sys_info, 'f3', data.stakeholders)
+            picked, unpicked = pipeline.generate_scenarios(sys_info, 'f3', data.stakeholders, data.feedback)
             results[task_id] = picked
             print("F3 Scenarios Generated")
 

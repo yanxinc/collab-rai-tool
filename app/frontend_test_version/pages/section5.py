@@ -3,21 +3,55 @@ app_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 helpers_dir = os.path.join(app_dir, 'helpers')
 sys.path.append(helpers_dir)
 import helper, rai_guide
-import time
 import streamlit as st
 from menu import menu
 import json
 from streamlit_feedback import streamlit_feedback
 
+st.set_page_config(layout="wide",initial_sidebar_state="expanded")
+
 def write_scenarios(f_enum):
     scenario_heading_list = st.session_state[f'{f_enum}_result']
     for i in range(len(scenario_heading_list)):
-        c1, c2 = st.columns([0.9,0.1])
+        c1, c2 = st.columns([0.7,0.3])
         with c1:
             st.write(helper.format_scenario_result(scenario_heading_list[i], i))
             
         with c2:
-            streamlit_feedback(feedback_type="thumbs", key=f's{i}_thumbs', optional_text_label="")
+            streamlit_feedback(feedback_type="thumbs", key=f's{i}_thumbs', optional_text_label='Optional explanation')
+
+    st.write(":red[Note: The generated scenarios are only examples of potential harms and fairness issues that could arise from the system's deployment and use. They are potential starting points for considering the fairness implications of the system. We cannot guarantee the accuracy and completeness of the information provided. Please think beyond the generated sceanrios and do not limit your brainstorming of harms to these scenarios.]")
+
+def display_buttons():
+    c3, c4 = st.columns([0.5,0.5])
+    with c3:
+        if f'{f_enum}_result_unpicked' not in st.session_state:
+            more_scenarios_btn = st.button("Show more scenarios", key=f"{f_enum}_more_scenarios",use_container_width=True)
+            if more_scenarios_btn:
+                result = helper.more_scenarios(st, st.session_state[f'{f_enum}_task_id'], f_enum)
+                if result:
+                    st.write(result)
+                    st.session_state[f"{f_enum}_result_unpicked"] = result
+                    st.session_state[f"{f_enum}_result"] = st.session_state[f"{f_enum}_result"] + result
+                    st.rerun()
+    with c4:
+        if f'{f_enum}_result' in st.session_state:
+            regenerate_btn = st.button("🔄 Regenerate Scenarios", key=f"{f_enum}_regenerate_btn",use_container_width=True)
+
+            if regenerate_btn:
+                feedback = ""
+                for i in range(len(st.session_state[f'{f_enum}_result'])):
+                    if st.session_state[f's{i}_thumbs'] and st.session_state[f's{i}_thumbs']['score'] == '👎':
+                        feedback += st.session_state[f's{i}_thumbs']['text']
+                    del st.session_state[f's{i}_thumbs']
+
+                del st.session_state[f'{f_enum}_result']
+                del st.session_state[f'{f_enum}_result_unpicked']
+
+                helper.send_req(st, sys_info, f_enum, all_stakeholders, feedback)
+                print(f"sending regenerate request for f3 with feedback: {feedback}")
+                helper.wait_response(st, f_enum)
+                st.rerun()
 
 st.subheader("Fairness Considerations - Minimization of stereotyping, demeaning, and erasing outputs")
 
@@ -47,33 +81,12 @@ f3_brainstorm = st.button("Help me brainstorm scenarios concerning Minimization 
 if f'f3_clicked' in st.session_state and f'{f_enum}_result' in st.session_state:
     with st.container(border=True):
         write_scenarios(f_enum)
-
-        if f'{f_enum}_result_unpicked' not in st.session_state:
-            more_scenarios_btn = st.button("Show more scenarios", key=f"{f_enum}_more_scenarios")
-            if more_scenarios_btn:
-                result = helper.more_scenarios(st, st.session_state[f'{f_enum}_task_id'], f_enum)
-                if result:
-                    st.write(result)
-                    st.session_state[f"{f_enum}_result_unpicked"] = result
-                    st.session_state[f"{f_enum}_result"] = st.session_state[f"{f_enum}_result"] + result
-                    st.rerun()
-
-        st.write(":red[Note: The generated scenarios are only examples of potential harms and fairness issues that could arise from the system's deployment and use. They are potential starting points for considering the fairness implications of the system. We cannot guarantee the accuracy and completeness of the information provided. Please think beyond the generated sceanrios and do not limit your brainstorming of harms to these scenarios.]")
+        display_buttons()
 
 if f3_brainstorm:
     if all_stakeholders != []:
         st.session_state[f'f3_clicked'] = True
-        if f'{f_enum}_task_status' in st.session_state:
-            if st.session_state[f'{f_enum}_task_status'] == 'Running':
-                with st.spinner('Generating Scenarios...'):
-                    while True:
-                        result = helper.poll_task_status(st, st.session_state[f'{f_enum}_task_id'], helper.Task.F3.value)
-                        if result:
-                            st.session_state[f"{f_enum}_result"] = result
-                            st.rerun()
-                            break
-                        else:
-                            time.sleep(10)
+        helper.wait_response(st, f_enum)
     else:
         st.write("Please fill in stakeholders first")
 

@@ -1,6 +1,6 @@
 import requests
 from enum import Enum
-import os
+import os, time
 
 class Task(Enum):
     DIRECT_SH = 1
@@ -27,13 +27,24 @@ def more_scenarios(st,task_id,task_type):
             return result['result']
     return None
 
-def send_req(st, sys_info, task_type, stakeholders=None):
-    response = requests.post(f"{backend_url}/pipeline-req",json={"sys_info": sys_info, "task": task_type, "stakeholders": stakeholders})
+def send_req(st, sys_info, task_type, stakeholders=None, feedback=None):
+    response = requests.post(f"{backend_url}/pipeline-req",json={"sys_info": sys_info, "task": task_type, "stakeholders": stakeholders, "feedback": feedback})
     if response.status_code == 200:
         st.session_state[f'{task_type}_task_id'] = response.json()['task_id']
         st.session_state[f'{task_type}_task_status'] = 'Running'
     else:
         st.error("Failed to start background task")
+
+def wait_response(st, f_enum):
+    if f'{f_enum}_task_status' in st.session_state and st.session_state[f'{f_enum}_task_status'] == 'Running':
+        with st.spinner('Generating Scenarios...'):
+            while True:
+                result = poll_task_status(st, st.session_state[f'{f_enum}_task_id'], f_enum)
+                if result:
+                    st.session_state[f"{f_enum}_result"] = result
+                    st.rerun()
+                else:
+                    time.sleep(10)
 
 def start_study():
     requests.get(f"{backend_url}/start-study")
