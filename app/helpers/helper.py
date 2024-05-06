@@ -46,8 +46,8 @@ def wait_response(st, f_enum):
                 else:
                     time.sleep(10)
 
-def start_study():
-    requests.get(f"{backend_url}/start-study")
+def start_study(i):
+    requests.get(f"{backend_url}/start-study/{i}")
 
 # Polling mechanism
 def poll_task_status(st,task_id, task_type):

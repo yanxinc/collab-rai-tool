@@ -29,7 +29,7 @@ def main():
     with col2:
         if st.button('Begin Study', use_container_width=True):
             st.session_state['study_started'] = True
-            helper.start_study(1)
+            helper.start_study(2)
             st.switch_page("pages/section1.py")
 
     menu(st)

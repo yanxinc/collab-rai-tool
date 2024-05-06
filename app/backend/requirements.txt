@@ -1,5 +1,5 @@
-fastapi==0.110.0
+fastapi
 openai==0.28
-torch==2.2.0
-sentence-transformers==2.5.1
-uvicorn==0.28.0
+torch
+sentence-transformers
+uvicorn

@@ -102,10 +102,11 @@ def logs():
     html_content += "</pre></body></html>"
     return HTMLResponse(content=html_content)
 
-@app.get("/start-study")
-def start_study():
-    print(f"Starting new user study")
-    pipeline.log_helper("\n### Starting new user study")
+@app.get("/start-study/{version}")
+def start_study(version):
+    v = "F3 section, then F2 section" if version == 1 else "F2 section, then F3 section"
+    print(f"Starting new user study - {v}")
+    pipeline.log_helper(f"\n### Starting new user study - {v}")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8502)
