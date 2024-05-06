@@ -106,7 +106,7 @@ def logs():
 def start_study(version: int):
     v = "F2 section, then F3 section" if version == 1 else "F3 section, then F2 section"
     print(f"Starting new user study - {v}")
-    pipeline.log_helper(f"\n### Starting new user study - {v}")
+    pipeline.log_helper(f"### Starting new user study - {v}\n")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8502)

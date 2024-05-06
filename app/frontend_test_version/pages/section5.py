@@ -18,6 +18,9 @@ def write_scenarios(f_enum):
             st.write(helper.format_scenario_result(scenario_heading_list[i], i))
             
         with c2:
+            _, c4 = st.columns([0.9, 0.1])
+            with c4:
+                st.markdown("", help="If you did not like a scenario, consider providing feedback to help improve the quality for the regenerated sceanrios.\n - Was the scenario relevant? If not, what information can be added to make it relevant?\n - Were there anything that was misunderstood?\n - Would you like to clarify some information?")
             streamlit_feedback(feedback_type="thumbs", key=f's{i}_thumbs', optional_text_label='Optional explanation')
 
     st.write(":red[Note: The generated scenarios are only examples of potential harms and fairness issues that could arise from the system's deployment and use. They are potential starting points for considering the fairness implications of the system. We cannot guarantee the accuracy and completeness of the information provided. Please think beyond the generated sceanrios and do not limit your brainstorming of harms to these scenarios.]")
