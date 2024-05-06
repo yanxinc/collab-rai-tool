@@ -103,8 +103,8 @@ def logs():
     return HTMLResponse(content=html_content)
 
 @app.get("/start-study/{version}")
-def start_study(version):
-    v = "F3 section, then F2 section" if version == 1 else "F2 section, then F3 section"
+def start_study(version: int):
+    v = "F2 section, then F3 section" if version == 1 else "F3 section, then F2 section"
     print(f"Starting new user study - {v}")
     pipeline.log_helper(f"\n### Starting new user study - {v}")
 
