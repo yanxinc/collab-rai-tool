@@ -1,6 +1,5 @@
 from fastapi import FastAPI, BackgroundTasks
 import uvicorn
-import time
 import uuid
 import pipeline
 from pydantic import BaseModel
@@ -22,6 +21,10 @@ app = FastAPI()
 results = {}
 
 def process_unpicked_scenarios(unpicked):
+    """
+    Process the unpicked scenarios to remove the corrective scenarios and generate 
+    the scenario headings. 
+    """
     final_scenarios = pipeline.remove_correctives(unpicked)
 
     scenario_heading_list = [
@@ -30,6 +33,12 @@ def process_unpicked_scenarios(unpicked):
     return scenario_heading_list
 
 def background_task(data: Data, task_id: str, task: Task):
+    """
+    Runs the pipeline service tasks in the background depending on the task type specified. 
+    Stores the result in the results dictionary with the task ID as the key.
+    For F1, F2, and F3 tasks (generating scenarios), the unpicked scenarios will begin 
+    processing, the results will be stored after the processing is done.  
+    """
     sys_info = data.sys_info
     match task:
         case Task.DIRECT_SH:
@@ -71,6 +80,10 @@ def background_task(data: Data, task_id: str, task: Task):
 
 @app.post("/pipeline-req/")
 async def run_task(data: Data, background_tasks: BackgroundTasks):
+    """
+    Receives the request to run a pipeline service task. Generate a new task ID corresponding to 
+    the request for future retrieval of the result.
+    """
     print(f"Received Request: {Task(data.task)}")
 
     task_id = str(uuid.uuid4())
@@ -80,18 +93,29 @@ async def run_task(data: Data, background_tasks: BackgroundTasks):
 
 @app.get("/get-result/{task_id}")
 async def get_result(task_id: str):
-    # Retrieve the result using the task ID, or return a default message
+    """
+    Retrieve the result using the task ID, or return a default message if the task is not 
+    completed or does not exist.
+    """
     result = results.get(task_id, "Task not completed or does not exist")
     return {"task_id": task_id, "result": result}
 
 @app.get("/get-more-scenarios/{task_id}")
 async def get_more_scenarios(task_id: str):
+    """
+    Retrieve the unpicked scenarios using the task ID, or return a default message if the task is not
+    completed or does not exist.
+    """
     unpicked = results.get(task_id + "_unpicked", "Task not completed or does not exist")
 
     return {"task_id": task_id, "result": unpicked}
 
 @app.get("/logs")
 def logs():
+    """
+    Display the logs in HTML format at the /logs endpoint. Logs are displayed in reverse line order
+    so that the most recent messages are displayed first.
+    """
     html_content = "<html><body><pre>"
     html_content+= "<h1>Logs</h1>"
     html_content+= "<h4>Note: The logs are displayed in reverse line order</h4>"
@@ -104,6 +128,9 @@ def logs():
 
 @app.get("/start-study/{version}")
 def start_study(version: int):
+    """
+    Indiciation that a new study has started. Also tracks the version of the app. 
+    """
     v = "F2 section, then F3 section" if version == 1 else "F3 section, then F2 section"
     print(f"Starting new user study - {v}")
     pipeline.log_helper(f"### Starting new user study - {v}\n")

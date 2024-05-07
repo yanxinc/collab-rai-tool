@@ -71,9 +71,13 @@ Go to http://feature.isri.cmu.edu:8503/ or http://feature.isri.cmu.edu:8504/ in 
 
 ![app home page](example.png)
 
-
 Go to http://feature.isri.cmu.edu:8502/logs in your browser to view the log messages.
 Note that the logs are displayed in reverse line order.
 
 To change the logging level, navigate to the `collab-rai-tool/app/backend/pipeline.py` file and change the level in `logging.basicConfig`. Options include `NOTSET`, `DEBUG`, `INFO`, `WARN`, `ERROR`, and `CRITICAL`. Then, rebuild the app. 
 
+### Sample Context - Movie Recommendation System
+
+I am building a system that provides movie recommendations to users based on their watching history and ratings data. The system can receive recommendation requests and needs to reply with a list of recommended movies.  The purpose of this system is to suggest movies to users to allow for better user experience. The users (movie watchers) would be able to receive more personalized recommendations. The AI / ML model uses collaborative filtering algorithms to accumulate and learn from users' past evaluations of movies to approximate ratings of unrated movies and then give recommendations based on these estimates. An user story is As a movie watcher, I want to request for personalized recommendations based on my interest and previous watch history, so that I can discover new films that match my preferences and enhance my viewing experience.
+
+Sample stakeholder list: ['Movie Watchers', 'Movie Producers and Distributors', 'Advertisers', 'Streaming Services']

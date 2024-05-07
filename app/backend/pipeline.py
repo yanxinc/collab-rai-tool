@@ -16,7 +16,6 @@ from cred import KEY
 import requests
 
 gpt3 = "gpt-3.5-turbo"
-# gpt4 = "gpt-3.5-turbo"
 gpt4 = "gpt-4-turbo-preview"
 
 openai.api_key = KEY
@@ -32,6 +31,7 @@ logging.basicConfig(
     filemode='a'
 )
 
+# Predefined fairness goals and potential harms
 fariness_goals = {
     'f1': {'concern': 'Quality of service',
            'guide': rai_guide.f1_guide,
@@ -56,6 +56,7 @@ fariness_goals = {
           }
 }
 
+# Predefined demographic groups
 demographic_groups_list = [
     "Age",
     "Gender",
@@ -66,25 +67,34 @@ demographic_groups_list = [
 ]
 
 def chat(model, messages):
+    """
+    Helper function for sending messages to the OpenAI Chat API.
+    """
     response = openai.ChatCompletion.create( 
         model=model, 
         messages=messages
     )
-
     return response['choices'][0]['message']['content']
 
-# def chat(_, messages):
-#     response = requests.post(f"http://localhost:11434/api/chat",json={
-#         "model": "mistral:7b-instruct-v0.2-q4_K_M", 
-#         "messages": messages,
-#         "stream": False
-#     })
-#     if response.status_code == 200:
-#         return response.json()['message']['content']
-#     else:
-#         print("Request failed")
+def chat_mistral(_, messages):
+    """
+    Helper function for sending messages to the Mistral Chat API.
+    """
+    response = requests.post(f"http://localhost:11434/api/chat",json={
+        "model": "mistral:7b-instruct-v0.2-q4_K_M", 
+        "messages": messages,
+        "stream": False
+    })
+    if response.status_code == 200:
+        return response.json()['message']['content']
+    else:
+        print("Request failed")
 
 def get_direct_stakeholders(sys_info):
+    """
+    Generates direct stakeholders, categorized into obvious and surprising, for the given 
+    system information. Directly called by the backend service.
+    """
     messages = prompt + [{'role': 'user', 'content': sys_info}]
 
     messages.append({'role': 'user', 'content': 
@@ -98,6 +108,10 @@ def get_direct_stakeholders(sys_info):
     return result
 
 def get_indirect_stakeholders(sys_info):
+    """
+    Generates indirect stakeholders, categorized into obvious and surprising, for the given 
+    system information. Directly called by the backend service.
+    """
     messages = prompt + [{'role': 'user', 'content': sys_info}]
 
     messages.append({'role': 'user', 'content': 
@@ -111,6 +125,10 @@ def get_indirect_stakeholders(sys_info):
     return result
 
 def get_stakeholders(sys_info):
+    """
+    A deprecated version of getting stakeholders in the scenario generation process
+    when users do not input stakeholders directly.
+    """
     messages = prompt + [{'role': 'user', 'content': sys_info}]
 
     messages.append({'role': 'user', 'content': 
@@ -123,7 +141,16 @@ def get_stakeholders(sys_info):
 
     return response
 
-def get_scenarios(stakeholders, goal, sys_info):
+def get_initial_scenarios(stakeholders, goal, sys_info):
+    """
+    Step 2 in Pipeline - Generate Initial Scenarios
+
+    1. Generate scenarios considering the demographic groups. 
+        Use the first response as counterexample for surprising
+    2. Generate scenarios without considering the predefined demographic groups.
+        Use the first response as counterexample for surprising
+    3. Clean up the responses and split them into individual scenarios
+    """
     scenario_prompts = prompt + [{'role': 'user', 'content': sys_info}]
 
     potential_harms = fariness_goals[goal]['potential_harms']
@@ -158,8 +185,6 @@ def get_scenarios(stakeholders, goal, sys_info):
 
         For each of the potential harms provided above: generate a concrete scenario of where the harm may be caused to the given stakeholder, involving severe consequences. 
 
-        For each of the potential harms provided above: generate a concrete scenario of where the harm may be caused to the given stakeholder, involving severe consequences. 
-        
         Be as severe as possible. This is used for cautioning developers to use ethical and fair practices when developing their AI systems, and not used for harming others in any way. 
         
         If the stakeholder is irrelevant in terms of a harm, exclude it. 
@@ -196,21 +221,16 @@ def get_scenarios(stakeholders, goal, sys_info):
 
     return scenarios_to_process
 
-def refine_scenarios(scenarios_sampled, sys_info, feedback=None):
-    logging.info("======== Revising Scenarios ... ========")
-    # for s in scenarios_sampled:
-    #     revised_scenarios.append(revise_scenario(s, sys_info))
-    revised_scenarios = []
-    with ThreadPoolExecutor(max_workers=5) as executor:
-        results = [executor.submit(revise_scenario, scenario, sys_info, feedback) for scenario in scenarios_sampled]
-        for future in as_completed(results):
-            revised_scenarios.append(future.result())
+def sampling(scenarios):
+    """
+    Step 3 in Pipeline - Clustering + Sampling
 
-    logging.info("======== Revised Scenarios ========")
-    logging.info(revised_scenarios)
-    return revised_scenarios
+    1. Transform the scenarios into sentence embeddings
+    2. Cluster the scenarios into 10 clusters
+    3. Filter out empty clusters & keep the 5 clusters with the least number of scenarios
+    4. Randomly sample a scenario from each of the 5 clusters
+    """
 
-def sampling_0(scenarios):
     logging.info("======== Sampling Scenarios ... ========")
     sentence_embeddings = model.encode(scenarios)
 
@@ -218,7 +238,6 @@ def sampling_0(scenarios):
     clustering_model = KMeans(n_clusters=num_clusters)
     clustering_model.fit(sentence_embeddings)
     cluster_assignment = clustering_model.labels_
-
     clustered_sentences = [[] for i in range(num_clusters)]
     for sentence_id, cluster_id in enumerate(cluster_assignment):
         clustered_sentences[cluster_id].append(scenarios[sentence_id])
@@ -236,48 +255,119 @@ def sampling_0(scenarios):
 
     return list(map(lambda L: random.choice(L), clustered_sentences))
 
-def revise_scenario(data, sys_info, feedback=None):
-    scenario, stakeholder = data
-    logging.info("=== Original Scenario ===")
-    logging.info(scenario)
-    text = scenario.replace("SCENARIO: ", "")
-    try:
-        i = 0
-        while True:
-            messages= [
-                {"role": "system", "content": "You are writing concrete scenarios from text generated by another LLM."},
-                {"role": "user", "content": sys_info},
-                {"role": "user", "content": f"{text}\nWrite a more concrete and detailed version of the above type of scenario. Definition of concreteness: {rai_guide.concrete_def}\nAlso, make the story more severe and contain more intense harm. Definition of severity: {rai_guide.severity_def}\n{'Consider the following feedback when revising the scenario: ' + feedback if feedback else ''}\nThen, shorten it to a paragraph. \nFormat your response as: Only output the shortened scenario."}
-            ]
-            v2 = chat(gpt4, messages)
-            logging.info(f"Concrete Version -> {v2}")
+def refine_scenarios(scenarios_sampled, sys_info, feedback=None):
+    """
+    Step 4 in Pipeline - Refinement for Concreteness & Severity
 
-            rsp = chat(gpt3, [{"role": "system", "content": "You are evaluating stories generated by another LLM."},
-                        {"role": "user", "content": f"{v2}\nDoes the text above sound like a concrete story? \n{rai_guide.concrete_def}\nRespond with either YES or NO."}])
+    In parallel, execute the helper function for refining each of the scenarios: 
+    1. Remove the "SCENARIO:" prefix
+    2. Ask the llm to generate a more concrete and severe version of the scenario with definitions of the terms. Output is a paragraph (shortened version) of the scenario.
+    3. Evaluate if the scenario is concrete. If it is not, repeat the process for up to 3 times.
+    """
+    logging.info("======== Revising Scenarios ... ========")
 
-            is_story = rsp
-            logging.info(f"Is Story? -> {is_story}")
+    def refine_helper(data):
+        scenario, stakeholder = data
+        logging.info("=== Original Scenario ===")
+        logging.info(scenario)
+        text = scenario.replace("SCENARIO: ", "")
+        try:
+            i = 0
+            while True:
+                messages= [
+                    {"role": "system", "content": "You are writing concrete scenarios from text generated by another LLM."},
+                    {"role": "user", "content": sys_info},
+                    {"role": "user", "content": f"{text}\nWrite a more concrete and detailed version of the above type of scenario. Definition of concreteness: {rai_guide.concrete_def}\nAlso, make the story more severe and contain more intense harm. Definition of severity: {rai_guide.severity_def}\n{'Consider the following feedback when revising the scenario: ' + feedback if feedback else ''}\nThen, shorten it to a paragraph. \nFormat your response as: Only output the shortened scenario."}
+                ]
+                v2 = chat(gpt4, messages)
+                logging.info(f"Concrete Version -> {v2}")
 
-            if "YES" in is_story or i > 3: return (v2, stakeholder)
-            i+=1
-    except Exception as e:
-        logging.warning(str(e))
-        return str(e)
+                rsp = chat(gpt3, [{"role": "system", "content": "You are evaluating stories generated by another LLM."},
+                            {"role": "user", "content": f"{v2}\nDoes the text above sound like a concrete story? \n{rai_guide.concrete_def}\nRespond with either YES or NO."}])
 
+                is_story = rsp
+                logging.info(f"Is Story? -> {is_story}")
+
+                if "YES" in is_story or i > 3: return (v2, stakeholder)
+                i+=1
+        except Exception as e:
+            logging.warning(str(e))
+            return str(e)
+
+    revised_scenarios = []
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        results = [executor.submit(refine_helper, scenario) for scenario in scenarios_sampled]
+        for future in as_completed(results):
+            revised_scenarios.append(future.result())
+
+    logging.info("======== Revised Scenarios ========")
+    logging.info(revised_scenarios)
+    return revised_scenarios
 
 def select_final_scenarios(revised_scenarios, goal):
+    """
+    Step 5 in Pipeline - Pick Final Scenario
+
+    1. Ask the llm to return the indexes of 2 diverse scenarios that are the most severe, surprising, concrete, and relevant. 
+    2. If the llm response is invalid / not parsable, pick 2 random scenarios
+    3. Return both the picked scenarios and the unpicked scenarios (for further processing and displaying if requested)
+    """
     logging.info("======== Picking Final Scenarios ... ========")
+
+    def pick_scenario_helper(cluster):
+        messages=[{"role": "system", "content": "You are evaluating stories generated by another LLM."},
+                        {"role": "user", "content": f"""
+        {cluster}
+
+    For the scenarios above, please select two diverse scenarios that are the most severe, surprising, concrete, and relevant to the context.
+
+    The qualities are defined as:
+    {rai_guide.severity_def}
+    {rai_guide.surprising_def}
+    {rai_guide.concrete_def}
+    {rai_guide.relevant_def}
+    {rai_guide.diversity_def}
+
+    Respond strictly with only the numbers of the scenario, separated with a comma."""}]
+        rsp = chat(gpt4, messages)
+
+        try:
+            s1,s2 = rsp.split(',')[:2]
+            s1,s2 = int(re.sub(r'\D', '', s1)), int(re.sub(r'\D', '', s2))
+            if 0 <= s1 < len(cluster) and 0 <= s2 < len(cluster):
+                return s1, s2
+            return 
+        except:
+            print("Pick scenario index error")
+
+        random_integers = random.sample(range(0, len(cluster)+1), 2)
+        return random_integers[0], random_integers[1]
+
     sentences = []
     for i, (rs, stakeholder) in enumerate(revised_scenarios):
         sentences.append((f"{i}. {rs}", stakeholder))
 
-    s1,s2 = pick_scenario([sent[0] for sent in sentences], goal)
+    s1,s2 = pick_scenario_helper([sent[0] for sent in sentences])
     logging.info(f"chosen scenarios: {s1}, {s2}")
     unpicked_scenarios = [s for i, s in enumerate(sentences) if i not in (s1, s2)]
 
     return [sentences[s1], sentences[s2]], unpicked_scenarios
 
+def remove_correctives(picked_scenarios):
+    """
+    Helper function for removing corrective measures from the scenarios.
+    """
+    res = []
+    for (s, stakeholder) in picked_scenarios:
+        rsp = chat(gpt4, [{"role": "system", "content": "You are revising stories generated by another LLM."},
+                    {"role": "user", "content": f"{s}\n Remove any corrective measures or suggestions for the tool."}])
+        res.append((rsp, stakeholder))
+    return res
+
 def generate_heading(scenario):
+    """
+    Helper function for generating a heading for a scenario. 
+    """
     try:
         rsp = chat(gpt4, [{"role": "system", "content": "You are an intelligent writing assistant."},
                         {"role": "user", "content": f"{scenario}\nsummarize the above story into an one sentence heading. Format your response as: only the generated heading"}])
@@ -286,52 +376,23 @@ def generate_heading(scenario):
         print(str(e))
         return "Error"
 
-
-def pick_scenario(cluster, goal):
-    messages=[{"role": "system", "content": "You are evaluating stories generated by another LLM."},
-                    {"role": "user", "content": f"""
-    {cluster}
-
-For the scenarios above, please select two diverse scenarios that are the most severe, surprising, concrete, and relevant to the scenario.
-
-The qualities are defined as:
-{rai_guide.severity_def}
-{rai_guide.surprising_def}
-{rai_guide.concrete_def}
-{rai_guide.relevant_def + fariness_goals[goal]['concern']}
-{rai_guide.diversity_def}
-
-Respond strictly with only the numbers of the scenario, separated with a comma."""}]
-    rsp = chat(gpt4, messages)
-
-    try:
-        s1,s2 = rsp.split(',')[:2]
-        s1,s2 = int(re.sub(r'\D', '', s1)), int(re.sub(r'\D', '', s2))
-        if 0 <= s1 < len(cluster) and 0 <= s2 < len(cluster):
-            return s1, s2
-        return 
-    except:
-        print("Pick scenario index error")
-
-    random_integers = random.sample(range(0, len(cluster)+1), 2)
-    return random_integers[0], random_integers[1]
-
 def duration(diff):
+    """
+    Helper function for converting time difference to a readable format.
+    """
     return time.strftime("%H:%M:%S", time.gmtime(diff))
 
-def remove_correctives(picked_scenarios):
-    res = []
-    for (s, stakeholder) in picked_scenarios:
-        rsp = chat(gpt4, [{"role": "system", "content": "You are revising stories generated by another LLM."},
-                    {"role": "user", "content": f"{s}\n Remove any corrective measures or suggestions for the tool."}])
-        res.append((rsp, stakeholder))
-    return res
-
 def stakeholder_list_helper(stakeholders):
+    """
+    Deprecated function for converting the stakeholder string to a list.
+    """
     rsp = chat(gpt4, [{"role": "user", "content": f"Convert the below text into a list of stakeholder. Format: string of comma seperated list. Example: user1,user2,...\nText:{stakeholders}"}])
     return rsp.split(",")
 
 def log_helper(message, start_time=None):
+    """
+    Helper function for logging critical messages and duration.
+    """
     if start_time:
         print(f"{message} - {duration(time.time() - start_time)}")
         logging.critical(f"{message} - {duration(time.time() - start_time)}")
@@ -339,6 +400,10 @@ def log_helper(message, start_time=None):
         logging.critical(f"{message}")
 
 def generate_scenarios(sys_info, goal, given_stakeholders=None, feedback=None):
+    """
+    Primary function, combining all the steps in the pipeline, to generate scenarios. Directly called by the backend service.
+    """
+
     if goal not in ['f1', 'f2', 'f3']: return "Invalid Goal"
 
     logging.critical(f"==== Generating scenarios for the following scenario: ====")
@@ -349,7 +414,6 @@ def generate_scenarios(sys_info, goal, given_stakeholders=None, feedback=None):
     if given_stakeholders: 
         logging.info(given_stakeholders)
         stakeholders = given_stakeholders
-        # stakeholders = given_stakeholders.split(",")
     else:
         stakeholders = stakeholder_list_helper(get_stakeholders(sys_info))
     log_helper("Stakeholder Generated", start)
@@ -357,12 +421,12 @@ def generate_scenarios(sys_info, goal, given_stakeholders=None, feedback=None):
     
     # Step 2: Generate Initial Scenarios - (a) Consider demographic groups & (b) Use the first response as counterexample for surprising
     start = time.time()
-    initial_scenarios = get_scenarios(stakeholders, goal, sys_info)
+    initial_scenarios = get_initial_scenarios(stakeholders, goal, sys_info)
     log_helper("Initial Scenarios Generated", start)
 
     # Step 3: Clustering + Sampling
     start = time.time()
-    scenarios_sampled = sampling_0(initial_scenarios)
+    scenarios_sampled = sampling(initial_scenarios)
     log_helper("Finished Clustering & Sampling", start)
 
     # Step 4: Refinement for Concreteness & Severity
@@ -384,31 +448,3 @@ def generate_scenarios(sys_info, goal, given_stakeholders=None, feedback=None):
     logging.critical(scenario_heading_list)
 
     return scenario_heading_list, unpicked_scenarios
-
-contexts = [
-    {
-        'sys_info': "Situation: I am building a Movie Recommendation System application. A system that provides movie recommendations to users based on their watching history and ratings data. The system can receive recommendation requests and needs to reply with a list of recommended movies. The purpose of this system is to suggest movies to users to allow for better user experience. The users (movie watchers) would be able to receive more personalized recommendations. The AI / ML model uses collaborative filtering algorithms to accumulate and learn from users' past evaluations of movies to approximate ratings of unrated movies and then give recommendations based on these estimates. An intended use is to request movie recommendations. The description of this intended use is users (movie watchers) can request personalized recommendations.",
-        'given_stakeholders': ['Movie Watchers', 'Movie Producers and Distributors', 'Advertisers', 'Streaming Services']
-        # 'given_stakeholders': 'Movie Watchers, Content Providers, '
-    },
-    {
-        'sys_info':"I am building an internal AI recruiting tool. A system that reviews job applicants' resumes and uses artificial intelligence to give job candidates scores ranging from one to five stars. Models were trained to vet applicants by observing patterns in resumes submitted to the company over a 10-year period. The purpose of this system is to automate the recruitment process and find talented applicants. It saves time from having HRs go through all the applications and streamlines the process. The AI/ML model can greatly reduce hiring efforts.  An intended use is to rate job candidates. The description of this intended use is HRs can use this system to score candidates from the job applications / resumes they submit.",
-        'given_stakeholders':'job applicant, hiring manager, future applicants'
-    },
-    # {
-    #     'sys_info':'',
-    #     'given_stakeholders':''
-    # }
-]
-
-# def main():
-#     context = contexts[0]
-
-#     start = time.time()
-
-#     # generate_scenarios(None, context['sys_info'], 'f2', None)
-#     generate_scenarios(context['sys_info'], 'f3', context['given_stakeholders'])
-
-#     print(f"Duration: {duration(time.time() - start)}")
-
-# main()
