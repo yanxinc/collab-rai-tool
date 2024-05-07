@@ -131,7 +131,10 @@ def start_study(version: int):
     """
     Indiciation that a new study has started. Also tracks the version of the app. 
     """
-    v = "F2 section, then F3 section" if version == 1 else "F3 section, then F2 section"
+    if version == 0: v = "Full Version"
+    elif version == 1: v = "F2 section, then F3 section"
+    elif version == 2: v = "F3 section, then F2 section"
+    else: v = "version unknown"
     print(f"Starting new user study - {v}")
     pipeline.log_helper(f"### Starting new user study - {v}\n")
 

@@ -406,7 +406,7 @@ def generate_scenarios(sys_info, goal, given_stakeholders=None, feedback=None):
 
     if goal not in ['f1', 'f2', 'f3']: return "Invalid Goal"
 
-    logging.critical(f"==== Generating scenarios for the following scenario: ====")
+    logging.critical(f"==== Generating {goal} scenarios for the following scenario: ====")
     logging.critical(sys_info)
 
     # Step 1: Generate Stakeholders

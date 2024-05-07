@@ -18,6 +18,9 @@ add_hm_button = st.button("Add More")
 if add_hm_button:
     st.session_state['num_hm'] += 1
 
-st.write("_This is only a portion of a complete Responsible AI Impact Assessment. Note that there are more questions, but excluded here._")
+col1, col2 = st.columns([0.7,0.3])
+with col2:
+    if st.button('Next Page', use_container_width=True):
+        st.switch_page("pages/section7.py")
 
 menu(st)

@@ -8,28 +8,27 @@ import rai_guide
 import streamlit as st
 from menu import menu
 
-def stakeholder_section(st, sys_info, us_description, is_direct):
+def stakeholder_section(st, sys_info, is_direct):
     sh_type = "direct" if is_direct else "indirect"
     sh_enum = helper.Task.DIRECT_SH.value if is_direct else helper.Task.INDIRECT_SH.value
 
-    if us_description != '' and f'{sh_enum}_task_status' not in st.session_state:
+    if sys_info != '' and f'{sh_enum}_task_status' not in st.session_state:
         helper.send_req(st, sys_info, sh_enum)
 
     st.subheader(f"{sh_type.capitalize()} Stakeholders") 
     if is_direct:
-        st.write(rai_guide.direct_stakeholder_def)
+        st.markdown(f":closed_book: **Definition**: {rai_guide.direct_stakeholder_def}",unsafe_allow_html=True)
     else:
-        st.write(rai_guide.indirect_stakeholder_def)
-    st.write(f"_Click the button below to brainstorm {sh_type} stakeholders_")
+        st.markdown(f":closed_book: **Definition**: {rai_guide.indirect_stakeholder_def}",unsafe_allow_html=True)
 
-    stakeholder_button = st.button(f"Help me brainstorm potential {sh_type} stakeholders",use_container_width=True)
+    stakeholder_button = st.button(f"Help me brainstorm potential {sh_type} stakeholders",use_container_width=True, type='primary')
 
     if f'{sh_enum}_clicked' in st.session_state and f'{sh_enum}_result' in st.session_state:
         with st.container(border=True):
             st.write(st.session_state[f'{sh_enum}_result'])
 
     if stakeholder_button:
-        if us_description != '':
+        if sys_info != '':
             st.session_state[f'{sh_enum}_clicked'] = True
             if f'{sh_enum}_task_status' in st.session_state:
                 if st.session_state[f'{sh_enum}_task_status'] == 'Running':
@@ -41,8 +40,9 @@ def stakeholder_section(st, sys_info, us_description, is_direct):
                                       .replace("Direct Surprising Stakeholders", "Other Direct Stakeholders")\
                                       .replace("Indirect Obvious Stakeholders", "Indirect Stakeholders")\
                                       .replace("Indirect Surprising Stakeholders", "Other Indirect Stakeholders")
+                                result = result + "\n\n:red[Note: This does not intend to be a comprehensive list of stakeholders and should be used for brainstorming purposes only. We cannot guarantee the accuracy and completeness of the information provided. Please think beyond the provided list of stakeholders.]"
                                 with st.container(border=True):
-                                    st.write(result)
+                                    st.markdown(result, unsafe_allow_html=True)
                                 st.session_state[f"{sh_enum}_result"] = result
                                 break
                             else:
@@ -83,15 +83,14 @@ def stakeholder_section(st, sys_info, us_description, is_direct):
 
 st.header(f"Section 2: Stakeholders Identification")
 
-us_description = st.session_state.get(f'us1_des', "").strip()
-sys_info = f"I am building a {st.session_state.get('system_name', '__')} application. {st.session_state.get('system_description', '__')} {st.session_state.get('system_purpose', '__')} An user story is {us_description}"
+if 'all_system_info' in st.session_state and st.session_state['all_system_info'] != "":
+    sys_info = st.session_state['all_system_info']
+else:
+    sys_info = f"I am building the following AI application. {st.session_state.get('system_description', '__')} {st.session_state.get('system_purpose', '__')} An user story is {st.session_state.get(f'us1_des', '').strip()}"
 
-st.write(f"User Story #1 : **{us_description if us_description != '' else '[Please enter an user story in section 1]'}**")
-
-st.write("_First, identify the system's stakeholders for your primary user story. Think broadly about the people impacted directly and indirectly. Then, for each stakeholder, document the goals and potential concerns._")
-
-stakeholder_section(st, sys_info, us_description, True)
-stakeholder_section(st, sys_info, us_description, False)
+st.write("In this section, identify the system's stakeholders for your system. Think broadly about the people impacted directly and indirectly.")
+stakeholder_section(st, sys_info, True)
+stakeholder_section(st, sys_info, False)
         
 all_stakeholders = helper.get_stakeholders(st)
 st.session_state['can_display_fairness_sections'] = len(all_stakeholders) > 0

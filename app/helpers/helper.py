@@ -112,3 +112,50 @@ def potential_harms_hint(st, guide):
 """
 
     st.markdown(css + hint, unsafe_allow_html=True)
+
+def write_scenarios(st, f_enum, st_feedback):
+    scenario_heading_list = st.session_state[f'{f_enum}_result']
+    for i in range(len(scenario_heading_list)):
+        c1, c2 = st.columns([0.7,0.3])
+        with c1:
+            st.write(format_scenario_result(scenario_heading_list[i], i))
+            
+        with c2:
+            _, c4 = st.columns([0.9, 0.1])
+            with c4:
+                st.markdown("", help="If you did not like a scenario, consider providing feedback to help improve the quality for the regenerated sceanrios.\n - Was the scenario relevant? If not, what information can be added to make it relevant?\n - Were there anything that was misunderstood?\n - Would you like to clarify some information?")
+            st_feedback(feedback_type="thumbs", key=f's{i}_thumbs', optional_text_label='Optional explanation')
+
+    st.write(":red[Note: The generated scenarios are only examples of potential harms and fairness issues that could arise from the system's deployment and use. They are potential starting points for considering the fairness implications of the system. We cannot guarantee the accuracy and completeness of the information provided. Please think beyond the generated sceanrios and do not limit your brainstorming of harms to these scenarios.]")
+
+def display_buttons(st, f_enum, sys_info, all_stakeholders):
+    c3, c4 = st.columns([0.5,0.5])
+    with c3:
+        if f'{f_enum}_result_unpicked' not in st.session_state:
+            more_scenarios_btn = st.button("Show more scenarios", key=f"{f_enum}_more_scenarios",use_container_width=True)
+            if more_scenarios_btn:
+                result = more_scenarios(st, st.session_state[f'{f_enum}_task_id'], f_enum)
+                if result:
+                    st.write(result)
+                    st.session_state[f"{f_enum}_result_unpicked"] = result
+                    st.session_state[f"{f_enum}_result"] = st.session_state[f"{f_enum}_result"] + result
+                    st.rerun()
+    with c4:
+        if f'{f_enum}_result' in st.session_state:
+            regenerate_btn = st.button("🔄 Regenerate Scenarios", key=f"{f_enum}_regenerate_btn",use_container_width=True)
+
+            if regenerate_btn:
+                feedback = ""
+                for i in range(len(st.session_state[f'{f_enum}_result'])):
+                    if st.session_state[f's{i}_thumbs'] and st.session_state[f's{i}_thumbs']['score'] == '👎':
+                        feedback += st.session_state[f's{i}_thumbs']['text']
+                    del st.session_state[f's{i}_thumbs']
+
+                del st.session_state[f'{f_enum}_result']
+                if f'{f_enum}_result_unpicked' in st.session_state:
+                    del st.session_state[f'{f_enum}_result_unpicked']
+
+                send_req(st, sys_info, f_enum, all_stakeholders, feedback)
+                print(f"sending regenerate request for f{f_enum-2} with feedback: {feedback}")
+                wait_response(st, f_enum)
+                st.rerun()

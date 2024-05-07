@@ -19,14 +19,14 @@ helper.potential_harms_hint(st, rai_guide.f3_guide)
 all_stakeholders = helper.get_stakeholders(st)
 
 # Start generating F2 scenarios as soon as stakeholders are filled & user moves on the section 3
-f_enum = helper.Task.F2.value
+f2_enum = helper.Task.F2.value
 if 'all_system_info' in st.session_state and st.session_state['all_system_info'] != "":
     sys_info = st.session_state['all_system_info']
 else:
     sys_info = f"I am building the following AI application. {st.session_state.get('system_description', '__')} {st.session_state.get('system_purpose', '__')} An user story is {st.session_state.get(f'us1_des', '').strip()}"
 
-if all_stakeholders != [] and f'{f_enum}_task_status' not in st.session_state:
-    helper.send_req(st, sys_info, f_enum, all_stakeholders)
+if all_stakeholders != [] and f'{f2_enum}_task_status' not in st.session_state:
+    helper.send_req(st, sys_info, f2_enum, all_stakeholders)
     print("sending request for f2")
 
 st.session_state[f'goal_f3_2'] =  st.text_area(f":lower_left_ballpoint_pen: **Instruction: Describe any potential harms**. For each identified stakeholder (:orange[{', '.join(all_stakeholders)}]) that are relevant, consider the potential negative impacts and fairness issues that could arise from the system's deployment and use.  ", value=st.session_state.get(f"goal_f3_2", ""))
